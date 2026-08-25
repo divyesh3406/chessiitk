@@ -12,6 +12,8 @@ DROP TABLE IF EXISTS security_rate_limits CASCADE;
 DROP TABLE IF EXISTS event_registrations CASCADE;
 DROP TABLE IF EXISTS "lolEntries" CASCADE;
 DROP TABLE IF EXISTS alumni_requests CASCADE;
+DROP TABLE IF EXISTS admin_logs CASCADE;
+
 
 -- 1. Users Table
 CREATE TABLE users (
@@ -160,6 +162,15 @@ CREATE TRIGGER update_blogs_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+-- 8. Admin Logs Table
+CREATE TABLE admin_logs (
+    id BIGSERIAL PRIMARY KEY,
+    admin_email VARCHAR(255) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    details TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Enable Row Level Security (RLS) on all tables to secure them from client-side anon API access
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pending_otps ENABLE ROW LEVEL SECURITY;
@@ -172,3 +183,5 @@ ALTER TABLE security_rate_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_registrations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "lolEntries" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE alumni_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_logs ENABLE ROW LEVEL SECURITY;
+

@@ -19,6 +19,7 @@ load_dotenv()
 from routes.auth import auth_bp
 from routes.blogs import blogs_bp
 from routes.events import events_bp
+from routes.admin import admin_bp
 
 app = Flask(__name__)
 jwt_secret = os.environ.get("JWT_SECRET")
@@ -76,6 +77,7 @@ CORS(
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(blogs_bp, url_prefix='/api')
 app.register_blueprint(events_bp)
+app.register_blueprint(admin_bp)
 
 @app.before_request
 def before_request():
