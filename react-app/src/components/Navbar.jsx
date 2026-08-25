@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, user } = useAuth();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -34,6 +34,10 @@ const Navbar = () => {
     { name: 'Contact Us', path: '/contact' },
     { name: 'Previous Teams', path: '/previous-teams' },
   ];
+
+  if (isLoggedIn && user?.is_admin) {
+    navLinks.push({ name: 'Admin', path: '/admin' });
+  }
 
   const location = useLocation();
   const isHomepage = location.pathname === '/';
