@@ -39,7 +39,7 @@ const eventTheme = {
 };
 
 const Calendar = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, token, user } = useAuth();
   const navigate = useNavigate(); // Initialize the router navigation
 
   const [currentDate, setCurrentDate] = useState(
@@ -251,18 +251,21 @@ const Calendar = () => {
   });
 
   useEffect(() => {
-    if (dbEvents.length > 0) {
+    if (dbEvents.length > 0 && user?.is_admin && token) {
       const logMsg = weeksData.map((wData, idx) => {
         return `Week ${idx}: ${wData.week[0].dateStr} to ${wData.week[6].dateStr} Assignments: ${JSON.stringify(wData.eventTrackAssignments)} Max tracks: ${wData.maxTracksCount}`;
       }).join('\n');
       
       fetch(`${API_BASE_URL}/api/events/debug_log`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ msg: logMsg })
       }).catch(() => {});
     }
-  }, [dbEvents, weeksData]);
+  }, [dbEvents, weeksData, user, token]);
 
   const handleScheduleClick = () => {
     const today = new Date();
