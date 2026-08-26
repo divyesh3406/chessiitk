@@ -76,12 +76,16 @@ const Landing = () => {
   const containerRef = useRef(null);
   const isLockedRef = useRef(false);
 
-  // Synchronize activeSection change with stats counters
+  // Synchronize activeSection change with stats counters with a delay on scroll-away
   useEffect(() => {
     if (activeSection === 2) {
       setTriggerStats(true);
     } else {
-      setTriggerStats(false);
+      // Wait 1000ms for the slide transition to complete before resetting counters to 0
+      const timer = setTimeout(() => {
+        setTriggerStats(false);
+      }, 1000);
+      return () => clearTimeout(timer);
     }
   }, [activeSection]);
 
@@ -108,25 +112,33 @@ const Landing = () => {
         });
       }
 
+      // Lock cooldown matches the transition speed (800ms) to allow responsive successive scrolls
       setTimeout(() => {
         isLockedRef.current = false;
-      }, 1000); // 1000ms transition transition cooldown
+      }, 800); 
 
       return nextIndex;
     });
   };
 
-  // Wheel Event Handler (Desktop/Mouse/Trackpad)
+  // Wheel Event Handler (Desktop/Mouse/Trackpad) with inertial momentum filtering
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleWheel = (e) => {
       e.preventDefault(); // Lock native browser scroll response
+
       if (isLockedRef.current) return;
 
-      const direction = e.deltaY > 0 ? 1 : -1;
-      scrollToSection(direction);
+      const delta = e.deltaY;
+      const absDelta = Math.abs(delta);
+
+      // Only trigger if scroll velocity is high enough (filters out inertial momentum decay)
+      if (absDelta > 35) {
+        const direction = delta > 0 ? 1 : -1;
+        scrollToSection(direction);
+      }
     };
 
     container.addEventListener('wheel', handleWheel, { passive: false });
