@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import Lenis from 'lenis';
 import fresherImg from '../assets/fresher_league_recap_1775765383248.png';
 import grandSwissImg from '../assets/grand_swiss_recap_1775765397656.png';
 import fideImg from '../assets/fide.png';
@@ -74,31 +73,6 @@ const Landing = () => {
   const heroRef = useRef(null);
   const [triggerStats, setTriggerStats] = useState(false);
 
-  // 1. Lenis Smooth Inertia scrolling controller
-  useEffect(() => {
-    // Initialize Lenis smooth scrolling with the golden timing parameters
-    const lenis = new Lenis({
-      duration: 1.5, // slightly longer duration to feel more graceful
-      easing: (t) => 1 - Math.pow(1 - t, 4), // easeOutQuart
-      lerp: 0.02, // lower lerp to make scroll feel heavier and lag behind more
-      wheelMultiplier: 0.3, // decrease scroll speed by 40%
-      infinite: false,
-      syncTouch: false // maintain native touch behavior on touch devices
-    });
-
-    const raf = (time) => {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    };
-
-    const rafId = requestAnimationFrame(raf);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
-
   // Scroll tracking across the pinned container (520vh for 4 smooth in-place stages with generous pacing)
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -130,9 +104,9 @@ const Landing = () => {
   const eventVisibility = useTransform(scrollYProgress, v => (v < 0.66 ? 'none' : 'flex'));
 
   useEffect(() => {
-    document.title = "Chess Club";
+    document.title = "Chess Club IITK";
     return () => {
-      document.title = "Chess Club";
+      document.title = "Chess Club IITK";
     };
   }, []);
 
