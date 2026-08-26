@@ -78,10 +78,10 @@ const Landing = () => {
   useEffect(() => {
     // Initialize Lenis smooth scrolling with the golden timing parameters
     const lenis = new Lenis({
-      duration: 1.2, 
+      duration: 1.5, 
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-      lerp: 0.1, 
-      wheelMultiplier: 0.8, 
+      lerp: 0.07, 
+      wheelMultiplier: 0.45, 
       infinite: false,
       syncTouch: false 
     });
@@ -94,38 +94,8 @@ const Landing = () => {
 
     rafId = requestAnimationFrame(raf);
 
-    let isAnimating = false;
-    const handleWheel = (e) => {
-      if (window.scrollY < window.innerHeight * 5.0 && e.deltaY !== 0) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (isAnimating) return;
-        
-        isAnimating = true;
-        const direction = e.deltaY > 0 ? 1 : -1;
-        const stageHeight = window.innerHeight * 1.3; // 520vh / 4 stages
-        
-        const currentStage = Math.round(window.scrollY / stageHeight);
-        let nextStage = currentStage + direction;
-        
-        if (nextStage < 0) nextStage = 0;
-        if (nextStage > 4) nextStage = 4;
-        
-        lenis.scrollTo(nextStage * stageHeight, {
-          duration: 1.0,
-          onComplete: () => {
-            setTimeout(() => { isAnimating = false; }, 100);
-          }
-        });
-      }
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
-
     return () => {
       cancelAnimationFrame(rafId);
-      window.removeEventListener('wheel', handleWheel, { capture: true });
       lenis.destroy();
     };
   }, []);
@@ -136,8 +106,7 @@ const Landing = () => {
     offset: ["start start", "end end"]
   });
 
-  // Center "CHESS CLUB IITK" zooms forward into the screen and dissolves away
-  const centerScale = useTransform(scrollYProgress, [0, 0.20], [1, 8]);
+  // Center "CHESS CLUB IITK" dissolves away without scaling to prevent layout/compositor lag
   const centerOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 0.8, 0]);
   const heroVisibility = useTransform(scrollYProgress, v => (v >= 0.20 ? 'none' : 'block'));
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
@@ -295,8 +264,7 @@ const Landing = () => {
             {/* Center Brand Title */}
             <motion.div
               style={{ 
-                opacity: centerOpacity, 
-                scale: centerScale
+                opacity: centerOpacity
               }}
               className="absolute inset-0 flex flex-col items-center justify-center px-4 max-w-4xl mx-auto"
             >
