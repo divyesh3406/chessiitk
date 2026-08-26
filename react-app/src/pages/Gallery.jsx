@@ -39,11 +39,49 @@ const FIDE_RATED_PHOTOS = FIDE_2526_PHOTOS;
 
 // Dynamically import all images in the Street Chess folder using Vite's glob import
 const STREET_CHESS_GLOB = import.meta.glob('../assets/Street Chess/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
-const STREET_CHESS_PHOTOS = Object.values(STREET_CHESS_GLOB).map(module => module.default);
+const STREET_CHESS_KEYS = Object.keys(STREET_CHESS_GLOB).sort((a, b) => a.localeCompare(b));
+const STREET_CHESS_PHOTOS = STREET_CHESS_KEYS.map(key => STREET_CHESS_GLOB[key].default).filter((_, idx) => idx !== 5);
 
 // Dynamically import all images in the Grand Swiss folder using Vite's glob import
 const GRAND_SWISS_GLOB = import.meta.glob('../assets/Grand Swiss/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
-const GRAND_SWISS_PHOTOS = Object.values(GRAND_SWISS_GLOB).map(module => module.default);
+const GRAND_SWISS_KEYS = Object.keys(GRAND_SWISS_GLOB).sort((a, b) => a.localeCompare(b));
+const GRAND_SWISS_PHOTOS = GRAND_SWISS_KEYS.map(key => GRAND_SWISS_GLOB[key].default).filter((_, idx) => idx !== 9);
+
+// Dynamically import all images in the Chess Hour folder using Vite's glob import
+const CHESS_HOUR_GLOB = import.meta.glob('../assets/Chess Hour/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+const CHESS_HOUR_KEYS = Object.keys(CHESS_HOUR_GLOB).sort((a, b) => {
+  const matchA = a.match(/\/(\d+)\.\w+$/);
+  const matchB = b.match(/\/(\d+)\.\w+$/);
+  if (matchA && matchB) {
+    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+  }
+  return a.localeCompare(b);
+});
+const CHESS_HOUR_PHOTOS = CHESS_HOUR_KEYS.map(key => CHESS_HOUR_GLOB[key].default);
+
+// Dynamically import all images in the Street Chess 2 folder using Vite's glob import
+const STREET_CHESS_2_GLOB = import.meta.glob('../assets/Street Chess 2/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+const STREET_CHESS_2_KEYS = Object.keys(STREET_CHESS_2_GLOB).sort((a, b) => {
+  const matchA = a.match(/\/(\d+)\.\w+$/);
+  const matchB = b.match(/\/(\d+)\.\w+$/);
+  if (matchA && matchB) {
+    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+  }
+  return a.localeCompare(b);
+});
+const STREET_CHESS_2_PHOTOS = STREET_CHESS_2_KEYS.map(key => STREET_CHESS_2_GLOB[key].default);
+
+// Dynamically import all images in the Championship 2026 folder using Vite's glob import
+const CHAMPIONSHIP_2026_GLOB = import.meta.glob('../Gallery/Championship 2026/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+const CHAMPIONSHIP_2026_KEYS = Object.keys(CHAMPIONSHIP_2026_GLOB).sort((a, b) => {
+  const matchA = a.match(/\/(\d+)\.\w+$/);
+  const matchB = b.match(/\/(\d+)\.\w+$/);
+  if (matchA && matchB) {
+    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+  }
+  return a.localeCompare(b);
+});
+const CHAMPIONSHIP_2026_PHOTOS = CHAMPIONSHIP_2026_KEYS.map(key => CHAMPIONSHIP_2026_GLOB[key].default);
 
 // Dynamically import other casual photos using Vite's glob import
 const OTHER_IMAGES_GLOB = import.meta.glob('../Gallery/OTHER PHOTOS/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
@@ -150,12 +188,32 @@ const CATEGORIES = ['All', 'Tournaments', 'Workshops', 'Socials'];
 const CURRENT_YEAR_EVENTS = [
   {
     id: 'current-street-chess',
+    category: 'Socials',
     title: 'Street Chess 2026',
     tag: 'Street Showcase',
-    date: 'Nov 12, 2026',
+    date: 'June 10, 2026',
     coverImage: STREET_CHESS_PHOTOS.length > 0 ? STREET_CHESS_PHOTOS[0] : workshopImg,
     photos: STREET_CHESS_PHOTOS,
     description: 'Bringing the game of chess to the campus streets! Casual, blitz, and speed matchplays on public tables open for all passersby.'
+  },
+  {
+    id: 'current-chess-hour',
+    category: 'Socials',
+    title: 'Chess Hour',
+    tag: 'Social Meetup',
+    date: 'Aug 8, 2026',
+    coverImage: CHESS_HOUR_PHOTOS.length > 0 ? CHESS_HOUR_PHOTOS[0] : workshopImg,
+    photos: CHESS_HOUR_PHOTOS,
+    description: 'Weekly casual over-the-board meetups, blitz sessions, and friendly sparring.'
+  },
+  {
+    id: 'current-street-chess-2',
+    category: 'Socials',
+    title: 'Street Chess 2',
+    tag: 'Street Showcase',
+    coverImage: STREET_CHESS_2_PHOTOS.length > 0 ? STREET_CHESS_2_PHOTOS[0] : workshopImg,
+    photos: STREET_CHESS_2_PHOTOS,
+    description: 'Taking over the streets once again! Friendly matchplays, lightning blitz tables, and casual chess out in the open campus air.'
   }
 ];
 
@@ -276,37 +334,155 @@ import cd10 from '../Gallery/CANDIDATES 2025/10.JPG';
 import cd11 from '../Gallery/CANDIDATES 2025/11.JPG';
 
 const FCL_PHOTOS = [fcl1, fcl2, fcl3, fcl4, fcl5, fcl6, fcl7, fcl9, fcl10, fcl11, fcl12, fcl13];
-const IITK_GRAND_SWISS_PHOTOS = [gs1, gs2, gs3, gs4, gs5, gs6, gs7, gs8, gs9, gs10, gs11];
-const CANDIDATES_2025_PHOTOS = [cd1, cd2, cd3, cd4, cd5, cd6, cd7, cd8, cd9, cd10, cd11];
+const IITK_GRAND_SWISS_PHOTOS = [gs1, gs2, gs3, gs4, gs5, gs6, gs7, gs8, gs9, gs11];
+const CANDIDATES_2025_PHOTOS = [cd1, cd2, cd3, cd4, cd5, cd7, cd8, cd9, cd10, cd11];
 
-const PREVIOUS_YEARS = ['25-26 Tenure'];
-const PREVIOUS_YEARS_DATA = {
-  '25-26 Tenure': [
-    {
-      id: "event-1",
-      category: "TOURNAMENTS",
-      title: "Freshers' Chess League",
-      description: "The ultimate showdown among the freshers.",
-      photos: FCL_PHOTOS,
-      image: FCL_PHOTOS[0]
-    },
-    {
-      id: "event-2",
-      category: "TOURNAMENTS",
-      title: "IITK Grand Swiss",
-      description: "The grandest chess tournament of the year.",
-      photos: IITK_GRAND_SWISS_PHOTOS,
-      image: IITK_GRAND_SWISS_PHOTOS[0]
-    },
-    {
-      id: "event-3",
-      category: "TOURNAMENTS",
-      title: "IITK Candidates 2025",
-      description: "Who will challenge the champion?",
-      photos: CANDIDATES_2025_PHOTOS,
-      image: CANDIDATES_2025_PHOTOS[0]
+const DEFAULT_ALBUMS = [
+  {
+    id: 'street-chess-2026',
+    category: 'Socials',
+    title: 'Street Chess 2026',
+    tag: 'Street Showcase',
+    date: 'June 10, 2026',
+    coverImage: 'street-chess-2026',
+    description: 'Bringing the game of chess to the campus streets! Casual, blitz, and speed matchplays on public tables open for all passersby.'
+  },
+  {
+    id: 'chess-hour',
+    category: 'Socials',
+    title: 'Chess Hour',
+    tag: 'Social Meetup',
+    date: 'Aug 8, 2026',
+    coverImage: 'chess-hour',
+    description: 'Weekly casual over-the-board meetups, blitz sessions, and friendly sparring.'
+  },
+  {
+    id: 'street-chess-2',
+    category: 'Socials',
+    title: 'Street Chess 2',
+    tag: 'Street Showcase',
+    date: 'Aug 14, 2026',
+    coverImage: 'street-chess-2',
+    description: 'Taking over the streets once again! Friendly matchplays, lightning blitz tables, and casual chess out in the open campus air.'
+  },
+  {
+    id: 'freshers-chess-league',
+    category: 'Tournaments',
+    title: "Freshers' Chess League",
+    tag: 'Tournament Showcase',
+    date: 'August 23-24, 2025',
+    coverImage: 'freshers-chess-league',
+    description: 'The ultimate showdown among the freshers.'
+  },
+  {
+    id: 'grand-swiss',
+    category: 'Tournaments',
+    title: 'IITK Grand Swiss',
+    tag: 'Tournament Showcase',
+    date: 'October 26, 2025',
+    coverImage: 'grand-swiss',
+    description: 'The grandest chess tournament of the year.'
+  },
+  {
+    id: 'candidates',
+    category: 'Tournaments',
+    title: 'IITK Candidates 2025',
+    tag: 'Tournament Showcase',
+    date: 'August 19, 2025',
+    coverImage: 'candidates',
+    description: 'Who will challenge the champion.'
+  },
+  {
+    id: 'championship-2026',
+    category: 'Tournaments',
+    title: 'IITK Championship',
+    tag: 'Tournament Showcase',
+    date: '',
+    coverImage: 'championship-2026',
+    description: 'The crowning event of the IITK Chess season. The ultimate battle for the title of campus champion.'
+  }
+];
+
+const resolveAlbumPhotos = (key) => {
+  switch (key) {
+    case 'street-chess-2026':
+      return {
+        photos: STREET_CHESS_PHOTOS,
+        coverImage: STREET_CHESS_PHOTOS.length > 0 ? STREET_CHESS_PHOTOS[0] : workshopImg
+      };
+    case 'chess-hour':
+      return {
+        photos: CHESS_HOUR_PHOTOS,
+        coverImage: CHESS_HOUR_PHOTOS.length > 0 ? CHESS_HOUR_PHOTOS[0] : workshopImg
+      };
+    case 'street-chess-2':
+      return {
+        photos: STREET_CHESS_2_PHOTOS,
+        coverImage: STREET_CHESS_2_PHOTOS.length > 0 ? STREET_CHESS_2_PHOTOS[0] : workshopImg
+      };
+    case 'freshers-chess-league':
+      return {
+        photos: FCL_PHOTOS,
+        coverImage: FCL_PHOTOS.length > 0 ? FCL_PHOTOS[0] : workshopImg
+      };
+    case 'grand-swiss':
+      return {
+        photos: IITK_GRAND_SWISS_PHOTOS,
+        coverImage: IITK_GRAND_SWISS_PHOTOS.length > 0 ? IITK_GRAND_SWISS_PHOTOS[0] : workshopImg
+      };
+    case 'candidates':
+      return {
+        photos: CANDIDATES_2025_PHOTOS,
+        coverImage: CANDIDATES_2025_PHOTOS.length > 0 ? CANDIDATES_2025_PHOTOS[0] : workshopImg
+      };
+    case 'championship-2026':
+      return {
+        photos: CHAMPIONSHIP_2026_PHOTOS,
+        coverImage: CHAMPIONSHIP_2026_PHOTOS.length > 0 ? CHAMPIONSHIP_2026_PHOTOS[0] : workshopImg
+      };
+    default:
+      return { photos: [], coverImage: workshopImg };
+  }
+};
+
+const getTenureFromDate = (dateStr, defaultTenure = '25-26 Tenure') => {
+  if (!dateStr) return defaultTenure;
+  let cleanDate = dateStr.replace(/-\d+/, '');
+  const d = new Date(cleanDate);
+  if (isNaN(d.getTime())) {
+    const match = dateStr.match(/\b(20\d\d)\b/);
+    if (match) {
+      const year = parseInt(match[1], 10);
+      return `${(year % 100).toString().padStart(2, '0')}-${((year + 1) % 100).toString().padStart(2, '0')} Tenure`;
     }
-  ]
+    return defaultTenure;
+  }
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  let startYear = month >= 5 ? year : year - 1;
+  const y = startYear % 100;
+  const yNext = (startYear + 1) % 100;
+  return `${y.toString().padStart(2, '0')}-${yNext.toString().padStart(2, '0')} Tenure`;
+};
+
+const getAlbumTime = (album) => {
+  if (!album.date) return null;
+  const cleanDate = album.date.replace(/-\d+/, '');
+  const d = new Date(cleanDate);
+  return isNaN(d.getTime()) ? null : d.getTime();
+};
+
+const sortAlbumsChronologically = (list) => {
+  return [...list].sort((a, b) => {
+    const timeA = getAlbumTime(a);
+    const timeB = getAlbumTime(b);
+    if (timeA !== null && timeB !== null) {
+      return timeA - timeB;
+    }
+    if (timeA === null && timeB !== null) return 1;
+    if (timeA !== null && timeB === null) return -1;
+    return 0;
+  });
 };
 
 const preloadImages = (urls) => {
@@ -326,7 +502,7 @@ const preloadImages = (urls) => {
 const Gallery = () => {
   const [isPreloading, setIsPreloading] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [activeYear, setActiveYear] = useState(PREVIOUS_YEARS[0]);
+  const [activeYear, setActiveYear] = useState('25-26 Tenure');
   const [isOpenLightbox, setIsOpenLightbox] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [slideshowIndex, setSlideshowIndex] = useState(0);
@@ -347,6 +523,92 @@ const Gallery = () => {
 
   // Pull login / admin auth status
   const { isLoggedIn, token } = useAuth();
+
+  const [albums, setAlbums] = useState(() => {
+    const saved = localStorage.getItem('gallery_albums_v2');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return DEFAULT_ALBUMS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gallery_albums_v2', JSON.stringify(albums));
+  }, [albums]);
+
+  const [editingAlbum, setEditingAlbum] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editFlair, setEditFlair] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const startEditAlbum = (album) => {
+    setEditingAlbum(album);
+    setEditTitle(album.title);
+    setEditDate(album.date || "");
+    setEditFlair(album.tag || "");
+    setEditDesc(album.description || "");
+  };
+
+  const saveAlbumEdits = () => {
+    setAlbums(prev => prev.map(a => {
+      if (a.id === editingAlbum.id) {
+        return {
+          ...a,
+          title: editTitle,
+          date: editDate,
+          tag: editFlair,
+          description: editDesc
+        };
+      }
+      return a;
+    }));
+    setEditingAlbum(null);
+  };
+
+  const confirmDeleteAlbum = () => {
+    setAlbums(prev => prev.filter(a => a.id !== deleteTargetId));
+    setDeleteTargetId(null);
+  };
+
+  // Group and sort albums dynamically by computed tenure
+  const groupedAlbums = {};
+  albums.forEach(album => {
+    let defaultTenure = '25-26 Tenure';
+    if (album.id === 'championship-2026') {
+      defaultTenure = '25-26 Tenure';
+    }
+    const tenure = getTenureFromDate(album.date, defaultTenure);
+    if (!groupedAlbums[tenure]) {
+      groupedAlbums[tenure] = [];
+    }
+    const resolved = resolveAlbumPhotos(album.coverImage);
+    groupedAlbums[tenure].push({
+      ...album,
+      photos: resolved.photos,
+      coverImage: resolved.coverImage
+    });
+  });
+
+  // Sort each group chronologically
+  Object.keys(groupedAlbums).forEach(tenure => {
+    groupedAlbums[tenure] = sortAlbumsChronologically(groupedAlbums[tenure]);
+  });
+
+  const sortedTenures = Object.keys(groupedAlbums).sort((a, b) => b.localeCompare(a));
+  const activeTenure = sortedTenures[0] || '26-27 Tenure';
+  const previousTenures = sortedTenures.slice(1);
+
+  // Synchronize activeYear to the first available past season if the current choice is invalid
+  useEffect(() => {
+    if (previousTenures.length > 0 && !previousTenures.includes(activeYear)) {
+      setActiveYear(previousTenures[0]);
+    }
+  }, [previousTenures, activeYear]);
 
   let isAdmin = false;
   if (isLoggedIn && token) {
@@ -666,31 +928,17 @@ const Gallery = () => {
     setDiaryIsAnimating(false);
   };
 
-  const handleNextPhoto = () => {
-    if (lightboxPhotos.length === 0) return;
-    setLightboxIndex(prev => (prev + 1) % lightboxPhotos.length);
-  };
-
-  const handlePrevPhoto = () => {
-    if (lightboxPhotos.length === 0) return;
-    setLightboxIndex(prev => (prev - 1 + lightboxPhotos.length) % lightboxPhotos.length);
-  };
-
   // Lightbox keyboard shortcuts
   useEffect(() => {
     if (!isOpenLightbox) return;
     const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') {
-        handleNextPhoto();
-      } else if (e.key === 'ArrowLeft') {
-        handlePrevPhoto();
-      } else if (e.key === 'Escape') {
+      if (e.key === 'Escape') {
         setIsOpenLightbox(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpenLightbox, lightboxPhotos]);
+  }, [isOpenLightbox]);
 
   // Map 3D Book page number to corresponding content safely
   const getBookPageContent = (pageNum) => {
@@ -731,17 +979,19 @@ const Gallery = () => {
 
   return (
     <>
-      <div className="px-6 md:px-12 pb-20 max-w-7xl mx-auto min-h-screen text-on-surface">
-      <header className="py-10 text-center max-w-3xl mx-auto">
-        <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-3">
-          Visual Archive
-        </p>
-        <h1 className="text-5xl sm:text-6xl font-serif mb-8">
-          The Gallery of <span className="text-primary">Kings</span>
-        </h1>
-        <p className="text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base mb-6">
-          Moments of triumph, intense calculations, and community memories captured through the lens.
-        </p>
+      <div className="px-4 sm:px-6 md:px-12 pb-20 max-w-7xl mx-auto min-h-screen text-on-surface">
+      <header className="mb-8 md:mb-10 pt-4 sm:pt-6 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/10 pb-8">
+        <div className="max-w-3xl">
+          <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-2">
+            Visual Archive
+          </p>
+          <h1 className="text-4xl font-serif leading-tight text-on-surface sm:text-5xl">
+            Gallery: Memories & Matches
+          </h1>
+          <p className="mt-3 text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base">
+            Moments of triumph, intense calculations, and community memories captured through the lens.
+          </p>
+        </div>
       </header>
 
 
@@ -755,7 +1005,7 @@ const Gallery = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="mb-20 bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-lg transition-all shadow-2xl max-w-5xl mx-auto group"
+            className="mb-20 bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-lg transition-all shadow-2xl max-w-7xl mx-auto group"
           >
             <div className="flex flex-col lg:flex-row">
               {/* Image side */}
@@ -827,7 +1077,7 @@ const Gallery = () => {
                         className="bg-primary text-[#3c2f00] font-bold px-6 py-3 rounded-lg shadow-lg hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2 hover:bg-primary-container outline-none"
                       >
                         <span className="material-symbols-outlined text-lg">photo_library</span>
-                        <span>View Captures ({FIDE_RATED_PHOTOS.length})</span>
+                        <span>View Gallery ({FIDE_RATED_PHOTOS.length})</span>
                       </button>
 
                       {isAdmin && (
@@ -850,149 +1100,219 @@ const Gallery = () => {
 
       {/* Current Season Exhibition (New Section) */}
       <AnimatePresence mode="wait">
-        {(activeCategory === 'All' || activeCategory === 'Socials') && (
-          <motion.section
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="mb-24 max-w-5xl mx-auto"
-          >
-            <div className="text-center mb-10">
-              <h2 className="text-4xl font-serif text-on-surface">
-                Active Season
-              </h2>
-            </div>
+        {(() => {
+          const filteredEvents = (groupedAlbums[activeTenure] || []).filter(event => 
+            activeCategory === 'All' || 
+            (event.category && event.category.toLowerCase() === activeCategory.toLowerCase())
+          );
+          if (filteredEvents.length === 0) return null;
+          return (
+            <motion.section
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="mb-24 max-w-7xl mx-auto"
+            >
+              <div className="mb-8 border-b border-outline-variant/10 pb-4">
+                <h2 className="text-2xl sm:text-3xl font-serif text-on-surface">
+                  Active Season
+                </h2>
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {CURRENT_YEAR_EVENTS.map((event) => (
-                <div
-                  key={event.id}
-                  className="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-[0_12px_40px_rgba(242,202,80,0.08)] transition-all duration-300 flex flex-col justify-between group relative shadow-lg"
-                >
-                  <div className="relative aspect-[16/11] overflow-hidden">
-                    <img
-                      src={event.coverImage}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent pointer-events-none opacity-80" />
-                    <div className="absolute top-3 left-3 bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm font-label text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm">
-                      {event.tag}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {filteredEvents.map((event) => (
+                  <div
+                    key={event.id}
+                    className="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-[0_12px_40px_rgba(242,202,80,0.08)] transition-all duration-300 flex flex-col justify-between group relative shadow-lg"
+                  >
+                    {/* Admin Controls absolute overlay */}
+                    {isAdmin && (
+                      <div className="absolute top-3 right-3 flex gap-2 z-10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditAlbum(event);
+                          }}
+                          className="p-2 bg-black/80 backdrop-blur-md rounded-full text-primary hover:scale-105 border border-outline-variant/15 transition-all shadow-lg cursor-pointer"
+                          title="Edit Album"
+                        >
+                          <span className="material-symbols-outlined text-xs font-bold">edit</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTargetId(event.id);
+                          }}
+                          className="p-2 bg-black/80 backdrop-blur-md rounded-full text-red-500 hover:scale-105 border border-outline-variant/15 transition-all shadow-lg cursor-pointer"
+                          title="Delete Album"
+                        >
+                          <span className="material-symbols-outlined text-xs font-bold">delete</span>
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="relative aspect-[16/11] overflow-hidden">
+                      <img
+                        src={event.coverImage}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent pointer-events-none opacity-80" />
+                      <div className="absolute top-3 left-3 bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm font-label text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm">
+                        {event.tag}
+                      </div>
+                    </div>
+
+                    <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div>
+                        {event.date && (
+                          <span className="text-[10px] font-label text-on-surface-variant/60 tracking-wider block mb-2 font-semibold">
+                            {event.date}
+                          </span>
+                        )}
+                        <h3 className="text-lg font-serif font-bold text-on-surface mb-3 group-hover:text-primary transition-colors leading-tight">
+                          {event.title}
+                        </h3>
+                        <p className="text-xs text-on-surface-variant leading-relaxed mb-6 line-clamp-3">
+                          {event.description}
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => openExhibition(event.photos, event.title)}
+                        className="w-full bg-surface-container hover:bg-primary text-on-surface hover:text-[#3c2f00] font-label text-[10px] font-bold uppercase tracking-widest py-3 rounded-xl border border-outline-variant/10 hover:border-primary transition-all flex items-center justify-center gap-2 animate-none"
+                      >
+                        <span className="material-symbols-outlined text-sm font-bold">photo_library</span>
+                        <span>View Gallery</span>
+                      </button>
                     </div>
                   </div>
-
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] font-label text-on-surface-variant/60 tracking-wider block mb-2 font-semibold">
-                        {event.date}
-                      </span>
-                      <h3 className="text-lg font-serif font-bold text-on-surface mb-3 group-hover:text-primary transition-colors leading-tight">
-                        {event.title}
-                      </h3>
-                      <p className="text-xs text-on-surface-variant leading-relaxed mb-6 line-clamp-3">
-                        {event.description}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => openExhibition(event.photos, event.title)}
-                      className="w-full bg-surface-container hover:bg-primary text-on-surface hover:text-[#3c2f00] font-label text-[10px] font-bold uppercase tracking-widest py-3 rounded-xl border border-outline-variant/10 hover:border-primary transition-all flex items-center justify-center gap-2"
-                    >
-                      <span className="material-symbols-outlined text-sm font-bold">filter_hdr</span>
-                      <span>View event archive</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-        )}
-        </AnimatePresence>
+                ))}
+              </div>
+            </motion.section>
+          );
+        })()}
+      </AnimatePresence>
 
       {/* Past Seasons Section */}
-      <section className="mb-24 max-w-7xl mx-auto px-4 md:px-0">
-        <div className="text-center mb-10">
-          <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-2">
-            Our Legacy
-          </p>
-          <h2 className="text-4xl font-serif text-on-surface">
-            Past Seasons
-          </h2>
-        </div>
-
-        <div className="flex flex-col md:flex-row gap-12 mt-8">
-          {/* Left Column: Navigation Buttons */}
-          <div className="w-full md:w-1/4 flex flex-col gap-4">
-            {PREVIOUS_YEARS.map((year) => (
-              <button
-                key={year}
-                onClick={() => setActiveYear(year)}
-                className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group
-                  ${activeYear === year 
-                    ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
-                    : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
-                  }`}
-              >
-                <span className="relative z-10 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[18px] opacity-80">
-                    history
-                  </span>
-                  {year}
-                </span>
-                {activeYear === year && (
-                  <span className="material-symbols-outlined relative z-10 text-[18px]">
-                    chevron_right
-                  </span>
-                )}
-                {activeYear !== year && (
-                  <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
-                )}
-              </button>
-            ))}
+      {previousTenures.length > 0 && (
+        <section className="mb-24 max-w-7xl mx-auto px-4 md:px-0">
+          <div className="mb-8 border-b border-outline-variant/10 pb-4">
+            <p className="text-primary font-label text-[10px] tracking-[0.3em] uppercase mb-1">
+              Our Legacy
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-serif text-on-surface">
+              Past Seasons
+            </h2>
           </div>
 
-          {/* Right Column: Event Cards */}
-          <div className="w-full md:w-3/4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {PREVIOUS_YEARS_DATA[activeYear]?.map((event) => (
-                <div
-                  key={event.id}
-                  className="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative shadow-lg cursor-pointer"
-                  onClick={() => openExhibition(event.photos, event.title)}
+          <div className="flex flex-col md:flex-row gap-12 mt-8">
+            {/* Left Column: Navigation Buttons */}
+            <div className="w-full md:w-1/4 flex flex-col gap-4">
+              {previousTenures.map((year) => (
+                <button
+                  key={year}
+                  onClick={() => setActiveYear(year)}
+                  className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group
+                    ${activeYear === year 
+                      ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
+                      : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
+                    }`}
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent pointer-events-none opacity-85" />
-                    <div className="absolute top-3 left-3 bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm font-label text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm">
-                      {event.category}
-                    </div>
-                  </div>
-
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-lg font-serif font-bold text-on-surface mb-3 group-hover:text-primary transition-colors leading-tight">
-                        {event.title}
-                      </h3>
-                      <p className="text-xs text-on-surface-variant leading-relaxed mb-6 line-clamp-3">
-                        {event.description}
-                      </p>
-                    </div>
-
-                    <div className="w-full bg-surface-container group-hover:bg-primary text-on-surface group-hover:text-[#3c2f00] font-label text-[10px] font-bold uppercase tracking-widest py-3 rounded-xl border border-outline-variant/10 group-hover:border-primary transition-all flex items-center justify-center gap-2 mt-auto">
-                      <span className="material-symbols-outlined text-sm font-bold">photo_library</span>
-                      <span>View Gallery</span>
-                    </div>
-                  </div>
-                </div>
+                  <span className="relative z-10 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-[18px] opacity-80">
+                      history
+                    </span>
+                    {year}
+                  </span>
+                  {activeYear === year && (
+                    <span className="material-symbols-outlined relative z-10 text-[18px]">
+                      chevron_right
+                    </span>
+                  )}
+                  {activeYear !== year && (
+                    <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
+                  )}
+                </button>
               ))}
             </div>
+
+            {/* Right Column: Event Cards */}
+            <div className="w-full md:w-3/4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(groupedAlbums[activeYear] || [])
+                  .filter(event => activeCategory === 'All' || (event.category && event.category.toLowerCase() === activeCategory.toLowerCase()))
+                  .map((event) => (
+                    <div
+                      key={event.id}
+                      className="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-xl transition-all duration-300 flex flex-col justify-between group relative shadow-lg cursor-pointer"
+                      onClick={() => openExhibition(event.photos, event.title)}
+                    >
+                      {/* Admin Controls absolute overlay */}
+                      {isAdmin && (
+                        <div className="absolute top-3 right-3 flex gap-2 z-10">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditAlbum(event);
+                            }}
+                            className="p-2 bg-black/80 backdrop-blur-md rounded-full text-primary hover:scale-105 border border-outline-variant/15 transition-all shadow-lg cursor-pointer"
+                            title="Edit Album"
+                          >
+                            <span className="material-symbols-outlined text-xs font-bold">edit</span>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTargetId(event.id);
+                            }}
+                            className="p-2 bg-black/80 backdrop-blur-md rounded-full text-red-500 hover:scale-105 border border-outline-variant/15 transition-all shadow-lg cursor-pointer"
+                            title="Delete Album"
+                          >
+                            <span className="material-symbols-outlined text-xs font-bold">delete</span>
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="relative aspect-[4/3] overflow-hidden">
+                        <img
+                          src={event.coverImage}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low via-transparent to-transparent pointer-events-none opacity-85" />
+                        <div className="absolute top-3 left-3 bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm font-label text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm">
+                          {event.tag}
+                        </div>
+                      </div>
+
+                      <div className="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                          {event.date && (
+                            <span className="text-[10px] font-label text-on-surface-variant/60 tracking-wider block mb-2 font-semibold">
+                              {event.date}
+                            </span>
+                          )}
+                          <h3 className="text-lg font-serif font-bold text-on-surface mb-3 group-hover:text-primary transition-colors leading-tight">
+                            {event.title}
+                          </h3>
+                          <p className="text-xs text-on-surface-variant leading-relaxed mb-6 line-clamp-3">
+                            {event.description}
+                          </p>
+                        </div>
+
+                        <div className="w-full bg-surface-container group-hover:bg-primary text-on-surface group-hover:text-[#3c2f00] font-label text-[10px] font-bold uppercase tracking-widest py-3 rounded-xl border border-outline-variant/10 group-hover:border-primary transition-all flex items-center justify-center gap-2 mt-auto">
+                          <span className="material-symbols-outlined text-sm font-bold">photo_library</span>
+                          <span>View Gallery</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Archives Card Grid (Preserves all other 9 static events in a beautiful cards grid!) */}
       {/* Archived Exhibitions Section commented out as requested
@@ -1457,6 +1777,159 @@ const Gallery = () => {
       </div>
 
       {/* Global Footer */}
+      {/* Edit Album Modal */}
+      <AnimatePresence>
+        {editingAlbum && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+            {/* Modal Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setEditingAlbum(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
+            />
+            
+            {/* Modal Window Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="relative z-10 w-full max-w-lg bg-surface-container-high/90 border border-outline-variant/35 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl overflow-y-auto max-h-[85vh] scrollbar-thin text-on-surface"
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-outline-variant/20">
+                <span className="material-symbols-outlined text-primary">edit_document</span>
+                <h3 className="text-xl font-serif font-bold text-on-surface">Edit Album Configuration</h3>
+              </div>
+
+              {/* Form Fields */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-label font-bold uppercase tracking-wider text-on-surface-variant/80 mb-2">
+                    Album Title
+                  </label>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+                    placeholder="Enter album title..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-label font-bold uppercase tracking-wider text-on-surface-variant/80 mb-2">
+                    Event Date (Optional, e.g. October 26, 2025)
+                  </label>
+                  <input
+                    type="text"
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+                    placeholder="e.g. June 10, 2026 or August 23-24, 2025"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-label font-bold uppercase tracking-wider text-on-surface-variant/80 mb-2">
+                    Album tag / Flair (Optional, e.g. Social Meetup, Tournament Showcase)
+                  </label>
+                  <input
+                    type="text"
+                    value={editFlair}
+                    onChange={(e) => setEditFlair(e.target.value)}
+                    className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary/50 transition-colors"
+                    placeholder="e.g. Street Showcase"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-label font-bold uppercase tracking-wider text-on-surface-variant/80 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editDesc}
+                    onChange={(e) => setEditDesc(e.target.value)}
+                    rows={3}
+                    className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl px-4 py-2.5 text-sm text-on-surface focus:outline-none focus:border-primary/50 transition-colors resize-none"
+                    placeholder="Enter brief description..."
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4 mt-8 pt-4 border-t border-outline-variant/20">
+                <button
+                  type="button"
+                  onClick={() => setEditingAlbum(null)}
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-outline-variant/20 text-on-surface hover:bg-surface-container transition-colors text-xs font-label uppercase tracking-wider font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={saveAlbumEdits}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-primary hover:bg-primary-container text-[#3c2f00] transition-colors text-xs font-label uppercase tracking-wider font-bold shadow-lg shadow-primary/20 cursor-pointer"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Album Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTargetId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            {/* Modal Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteTargetId(null)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm cursor-pointer"
+            />
+            
+            {/* Modal Window Container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: "spring", duration: 0.4 }}
+              className="relative z-10 w-full max-w-sm bg-surface-container-high/90 border border-outline-variant/35 rounded-3xl p-6 backdrop-blur-xl shadow-2xl text-center text-on-surface"
+            >
+              <span className="material-symbols-outlined text-4xl text-red-500 mb-3 block">warning</span>
+              <h3 className="text-xl font-serif font-bold text-on-surface mb-2">Delete Album</h3>
+              <p className="text-sm text-on-surface-variant mb-6 leading-relaxed">
+                Are you sure you want to permanently delete this gallery album? This action cannot be undone.
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTargetId(null)}
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-outline-variant/20 text-on-surface hover:bg-surface-container transition-colors text-xs font-label uppercase tracking-wider font-bold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteAlbum}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-red-500 hover:bg-red-600 text-white transition-colors text-xs font-label uppercase tracking-wider font-bold shadow-lg shadow-red-500/20 cursor-pointer"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <Footer />
     </>
   );

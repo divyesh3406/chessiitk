@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import Lenis from 'lenis';
 import fresherImg from '../assets/fresher_league_recap_1775765383248.png';
 import grandSwissImg from '../assets/grand_swiss_recap_1775765397656.png';
 import fideImg from '../assets/fide.png';
@@ -12,13 +13,9 @@ import tanmayImg from "../assets/exCoordinators/tanmay.jpg";
 import akshatImg from "../assets/exCoordinators/akshat.png";
 import kushagraImg from "../assets/exCoordinators/kushagra.jpg";
 import pulkitImg from "../assets/exCoordinators/pulkit.jpg";
-import { globalCache } from '../utils/cache';
 import { API_BASE_URL } from '../config';
-
-import handLeftImg from '../assets/hero/hand_left.png';
-import handRightImg from '../assets/hero/hand_right.png';
-import kingBeigeImg from '../assets/hero/king_beige.png';
-import queenGreenImg from '../assets/hero/queen_green.png';
+import { globalCache } from '../utils/cache';
+import FloatingChessPieces from '../components/FloatingChessPieces';
 
 const AnimatedCounter = ({ value, duration = 1200, trigger }) => {
   const [count, setCount] = useState(0);
@@ -77,16 +74,36 @@ const Landing = () => {
   const heroRef = useRef(null);
   const [triggerStats, setTriggerStats] = useState(false);
 
+  // 1. Lenis Smooth Inertia scrolling controller
+  useEffect(() => {
+    // Initialize Lenis smooth scrolling with the golden timing parameters
+    const lenis = new Lenis({
+      duration: 1.5, // slightly longer duration to feel more graceful
+      easing: (t) => 1 - Math.pow(1 - t, 4), // easeOutQuart
+      lerp: 0.02, // lower lerp to make scroll feel heavier and lag behind more
+      wheelMultiplier: 0.3, // decrease scroll speed by 40%
+      infinite: false,
+      syncTouch: false // maintain native touch behavior on touch devices
+    });
+
+    const raf = (time) => {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    };
+
+    const rafId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, []);
+
   // Scroll tracking across the pinned container (520vh for 4 smooth in-place stages with generous pacing)
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end end"]
   });
-
-  // STAGE 1: Smooth outward movement of hands when scrolling down (clears by 0.18)
-  const leftHandX = useTransform(scrollYProgress, [0, 0.18], ["0%", "-150%"]);
-  const rightHandX = useTransform(scrollYProgress, [0, 0.18], ["0%", "150%"]);
-  const handsOpacity = useTransform(scrollYProgress, [0, 0.12, 0.18], [1, 0.7, 0]);
 
   // Center "CHESS CLUB IITK" zooms forward into the screen and dissolves away
   const centerScale = useTransform(scrollYProgress, [0, 0.20], [1, 8]);
@@ -132,7 +149,7 @@ const Landing = () => {
   useEffect(() => {
     // Delay preloading by 2 seconds to prioritize main landing page resources
     const timer = setTimeout(() => {
-      const imagesToPreload = [tanmayImg, akshatImg, kushagraImg, pulkitImg, handLeftImg, handRightImg, kingBeigeImg, queenGreenImg];
+      const imagesToPreload = [tanmayImg, akshatImg, kushagraImg, pulkitImg];
       imagesToPreload.forEach(src => {
         const img = new Image();
         img.src = src;
@@ -168,7 +185,10 @@ const Landing = () => {
           location: evt.location,
           format: evt.format
         })).filter(evt => {
-          const compareDate = new Date(evt.endDate || evt.date);
+          const dateStr = evt.endDate && evt.endDate !== 'null' && evt.endDate !== 'None' ? evt.endDate : evt.date;
+          if (!dateStr) return false;
+          const compareDate = new Date(dateStr);
+          if (isNaN(compareDate.getTime())) return false;
           compareDate.setHours(0,0,0,0);
           return compareDate >= today;
         });
@@ -229,61 +249,18 @@ const Landing = () => {
             }}
           />
 
+          {/* Dynamic Floating Chess Pieces */}
+          <FloatingChessPieces />
+
           {/* Vignette & Soft Center Glow */}
           <div className="absolute inset-0 bg-radial from-transparent via-[#121212]/50 to-[#121212] pointer-events-none z-0" />
           <div className="absolute w-[500px] h-[300px] rounded-full bg-primary/5 blur-[140px] pointer-events-none z-0" />
 
-          {/* STAGE 1: HERO (Hands + King & Queen + Center Title) */}
+          {/* STAGE 1: HERO (Center Title) */}
           <motion.div 
             style={{ display: heroVisibility }}
             className="absolute inset-0 pointer-events-none z-10 select-none"
           >
-            {/* Left Hand + Warm Beige King */}
-            <motion.div 
-              style={{ x: leftHandX, opacity: handsOpacity }}
-              className="absolute left-[-100px] sm:left--15 md:left--7 lg:left--0.001 top-1/2 -translate-y-1/2 pointer-events-none z-20 flex items-center"
-            >
-              <div className="relative w-[180px] sm:w-[260px] md:w-[320px] lg:w-[380px]">
-                {/* King piece in FRONT (#E0D5C1 warm beige with dot matrix positioned right at the fingertips) */}
-                <img 
-                  src={kingBeigeImg} 
-                  alt="Beige King" 
-                  className="absolute top-[48%] left-[88%] -translate-x-1/2 -translate-y-1/2 w-[46px] sm:w-[66px] md:w-[82px] lg:w-[98px] rotate-[28deg] drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)]"
-                  style={{ zIndex: 10, filter: 'drop-shadow(0 0 1px rgba(224,213,193,0.3))' }}
-                />
-                {/* Left Hand in BACK */}
-                <img 
-                  src={handLeftImg} 
-                  alt="Left Hand" 
-                  className="relative w-full h-auto drop-shadow-[0_16px_36px_rgba(0,0,0,0.95)]"
-                  style={{ zIndex: 1 }}
-                />
-              </div>
-            </motion.div>
-
-            {/* Right Hand + Green Tinted Queen */}
-            <motion.div 
-              style={{ x: rightHandX, opacity: handsOpacity }}
-              className="absolute right-[-100px] sm:right--2 md:right--4 lg:right--1 top-[35%] -translate-y-1/2 pointer-events-none z-20 flex items-center justify-end"
-            >
-              <div className="relative w-[180px] sm:w-[260px] md:w-[320px] lg:w-[380px]">
-                {/* Queen piece in FRONT (#228B22 green tint with dot matrix positioned right at the fingertip) */}
-                <img 
-                  src={queenGreenImg} 
-                  alt="Green Queen" 
-                  className="absolute top-[50%] left-[4%] -translate-x-1/2 -translate-y-1/2 w-[46px] sm:w-[66px] md:w-[82px] lg:w-[98px] -rotate-[18deg] drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)]"
-                  style={{ zIndex: 10, filter: 'drop-shadow(0 0 1px rgba(34,139,34,0.3))' }}
-                />
-                {/* Right Hand in BACK */}
-                <img 
-                  src={handRightImg} 
-                  alt="Right Hand" 
-                  className="relative w-full h-auto drop-shadow-[0_16px_36px_rgba(0,0,0,0.95)]"
-                  style={{ zIndex: 1 }}
-                />
-              </div>
-            </motion.div>
-
             {/* Center Brand Title */}
             <motion.div
               style={{ 
@@ -451,21 +428,21 @@ const Landing = () => {
           </motion.div>
 
           {/* STAGE 4: UPCOMING EVENT (Materializes in-place in the center of the screen!) */}
-          {nextEvent && (
-            <motion.div
-              style={{
-                opacity: eventOpacity,
-                scale: eventScale,
-                pointerEvents: eventPointerEvents,
-                display: eventVisibility
-              }}
-              className="absolute inset-0 z-30 w-full max-w-5xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6 overflow-y-auto"
-            >
-              <div className="text-center mb-6">
-                <span className="text-primary font-label text-xs tracking-[0.3em] uppercase">Featured Arena</span>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-on-surface mt-1">Upcoming Event</h2>
-              </div>
+          <motion.div
+            style={{
+              opacity: eventOpacity,
+              scale: eventScale,
+              pointerEvents: eventPointerEvents,
+              display: eventVisibility
+            }}
+            className="absolute inset-0 z-30 w-full max-w-5xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6 overflow-y-auto"
+          >
+            <div className="text-center mb-6">
+              <span className="text-primary font-label text-xs tracking-[0.3em] uppercase">Featured Arena</span>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-on-surface mt-1">Upcoming Event</h2>
+            </div>
 
+            {nextEvent ? (
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('open-event-details-modal'))}
                 className="w-full text-left rounded-3xl border border-[#4d4635]/30 bg-gradient-to-br from-surface-container-high/90 to-surface-container/60 backdrop-blur-xl hover:border-primary/50 hover:shadow-[0_0_50px_rgba(242,202,80,0.2)] transition-all duration-700 flex flex-col md:flex-row overflow-hidden group cursor-pointer relative shadow-2xl shadow-black/80"
@@ -539,19 +516,27 @@ const Landing = () => {
                   </div>
                 </div>
               </button>
-
-              {/* Other Events CTA Button */}
-              <div className="flex justify-center mt-6">
-                <Link
-                  to="/events"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-primary/30 bg-primary/10 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-surface transition-all duration-300 shadow-lg shadow-primary/10"
-                >
-                  <span className="material-symbols-outlined text-sm">event_note</span>
-                  View All Tournaments
-                </Link>
+            ) : (
+              <div className="w-full text-center p-12 rounded-3xl border border-[#4d4635]/20 bg-gradient-to-br from-surface-container-high/60 to-surface-container/30 backdrop-blur-xl flex flex-col items-center justify-center relative shadow-xl">
+                <span className="material-symbols-outlined text-5xl text-primary/40 mb-4">sports_esports</span>
+                <h3 className="text-xl font-serif text-on-surface font-semibold">Stay Tuned!</h3>
+                <p className="text-xs sm:text-sm text-on-surface-variant/75 mt-2 max-w-md mx-auto font-body leading-relaxed">
+                  We are currently preparing our next offline auctions and competitive arenas. Check back shortly or view our calendar for the full schedule!
+                </p>
               </div>
-            </motion.div>
-          )}
+            )}
+
+            {/* Other Events CTA Button */}
+            <div className="flex justify-center mt-6">
+              <Link
+                to="/events"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-primary/30 bg-primary/10 text-xs font-bold uppercase tracking-widest text-primary hover:bg-primary hover:text-surface transition-all duration-300 shadow-lg shadow-primary/10"
+              >
+                <span className="material-symbols-outlined text-sm">event_note</span>
+                View All Tournaments
+              </Link>
+            </div>
+          </motion.div>
 
         </div>
       </div>

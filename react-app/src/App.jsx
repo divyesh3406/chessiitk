@@ -9,6 +9,7 @@ import PageTransition from './components/PageTransition';
 import ServerError500 from './pages/ServerError500';
 import { API_BASE_URL } from './config';
 import { globalCache } from './utils/cache';
+import AdminRoute from './components/AdminRoute';
 
 // Import critical images for preloading
 import chessboardImg from './assets/chessclubiitklogo.jpeg';
@@ -30,6 +31,7 @@ const Signup = React.lazy(() => import('./pages/Signup'));
 const Login = React.lazy(() => import('./pages/Login'));
 const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
 const Results = React.lazy(() => import('./pages/Results'));
+const AdminPortal = React.lazy(() => import('./pages/AdminPortal'));
 
 // Premium, brand-aligned loading spinner fallback
 const PageLoader = () => (
@@ -150,6 +152,7 @@ function App() {
                 <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
                 <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
                 <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+                <Route path="/admin" element={<AdminRoute><PageTransition><AdminPortal /></PageTransition></AdminRoute>} />
                 <Route path="/500" element={<PageTransition><ServerError500 /></PageTransition>} />
               </Routes>
             </Suspense>
