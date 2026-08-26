@@ -127,6 +127,7 @@ const Landing = () => {
     if (!container) return;
 
     const handleWheel = (e) => {
+      if (window.innerWidth < 768) return; // Allow natural scrolling on mobile
       e.preventDefault(); // Lock native browser scroll response
 
       if (isLockedRef.current) return;
@@ -159,11 +160,13 @@ const Landing = () => {
     };
 
     const handleTouchMove = (e) => {
+      if (window.innerWidth < 768) return; // Allow natural touch swiping on mobile
       // Prevent default elastic scroll bounces
       e.preventDefault();
     };
 
     const handleTouchEnd = (e) => {
+      if (window.innerWidth < 768) return; // Allow natural touch swiping on mobile
       if (isLockedRef.current) return;
 
       const touchEndY = e.changedTouches[0].clientY;
