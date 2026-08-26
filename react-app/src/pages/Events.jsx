@@ -15,47 +15,16 @@ const Events = () => {
   const [highlightedId, setHighlightedId] = useState(null);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(() => {
-    const isReload = window.performance && 
-      (window.performance.navigation?.type === 1 || 
-       (performance.getEntriesByType("navigation")[0] && performance.getEntriesByType("navigation")[0].type === 'reload'));
-    if (isReload) {
-      return localStorage.getItem('selectedEventTab') || 'upcoming';
-    }
-    return 'upcoming';
-  });
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [selectedYear, setSelectedYear] = useState('26-27 Tenure');
 
-  const [selectedYear, setSelectedYear] = useState(() => {
-    const isReload = window.performance && 
-      (window.performance.navigation?.type === 1 || 
-       (performance.getEntriesByType("navigation")[0] && performance.getEntriesByType("navigation")[0].type === 'reload'));
-    if (isReload) {
-      return localStorage.getItem('selectedEventYear') || '26-27 Tenure';
-    }
-    return '26-27 Tenure';
-  });
-
-  const prevKeyRef = useRef(location.key);
-
+  // Reset tab to 'upcoming' and year to current when location changes (except when scrolling to specific event)
   useEffect(() => {
-    if (prevKeyRef.current !== location.key) {
-      prevKeyRef.current = location.key;
-      if (activeTab === 'past' && !location.state?.scrollToEventId) {
-        setActiveTab('upcoming');
-      }
-      if (selectedYear !== '26-27 Tenure' && !location.state?.scrollToEventId) {
-        setSelectedYear('26-27 Tenure');
-      }
+    if (!location.state?.scrollToEventId) {
+      setActiveTab('upcoming');
+      setSelectedYear('26-27 Tenure');
     }
-  }, [location, activeTab, selectedYear]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedEventTab', activeTab);
-  }, [activeTab]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedEventYear', selectedYear);
-  }, [selectedYear]);
+  }, [location]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
