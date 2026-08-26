@@ -86,12 +86,13 @@ const Landing = () => {
       syncTouch: false // maintain native touch behavior on touch devices
     });
 
+    let rafId;
     const raf = (time) => {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     };
 
-    const rafId = requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
     return () => {
       cancelAnimationFrame(rafId);
