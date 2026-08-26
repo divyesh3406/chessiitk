@@ -286,9 +286,10 @@ const SECRETARIES = [
     role: "Secretary",
     funnyDescription: `"Life is like chess. I don't know how to play chess."`,
     image: shaoniImg,
-    email: "shaonim24@iitk.ac.in",
-    instagram: "https://www.instagram.com/shaoni_mukherjee/",
-    linkedin: "https://www.linkedin.com/in/shaoni-mukherjee/"
+    email: "shaonim25@iitk.ac.in",
+    instagram: "https://www.instagram.com/shaoni_mukherjee.64?igsi=YWVoeHA0ZWhwcGNt",
+    linkedin: "https://www.linkedin.com/in/shaoni-mukherjee-618b0b316?utm_source=share_via&utm_content=profile&utm_medium=member_android
+"
   },
   {
     id: "sec-24",
