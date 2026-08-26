@@ -72,6 +72,7 @@ const Results = () => {
           </p>
           <Link 
             to="/events" 
+            state={{ defaultTab: 'past' }}
             className="px-6 py-2.5 rounded-xl bg-primary text-[#3c2f00] font-bold text-xs font-label uppercase tracking-widest hover:bg-[#d4af37] transition-all shadow-md shadow-primary/10 flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-sm">arrow_back</span>

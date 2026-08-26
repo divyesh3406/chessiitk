@@ -18,9 +18,14 @@ const Events = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [selectedYear, setSelectedYear] = useState('26-27 Tenure');
 
-  // Reset tab to 'upcoming' and year to current when location changes (except when scrolling to specific event)
+  // Reset tab to 'upcoming' and year to current when location changes (except when custom tab or specific event scroll is requested)
   useEffect(() => {
-    if (!location.state?.scrollToEventId) {
+    if (location.state?.defaultTab) {
+      setActiveTab(location.state.defaultTab);
+      if (location.state.defaultTab === 'past') {
+        setSelectedYear('25-26 Tenure');
+      }
+    } else if (!location.state?.scrollToEventId) {
       setActiveTab('upcoming');
       setSelectedYear('26-27 Tenure');
     }

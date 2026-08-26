@@ -209,7 +209,7 @@ const CURRENT_YEAR_EVENTS = [
   {
     id: 'current-street-chess-2',
     category: 'Socials',
-    title: 'Street Chess 2',
+    title: 'Street Chess 2026',
     tag: 'Street Showcase',
     coverImage: STREET_CHESS_2_PHOTOS.length > 0 ? STREET_CHESS_2_PHOTOS[0] : workshopImg,
     photos: STREET_CHESS_2_PHOTOS,
@@ -359,7 +359,7 @@ const DEFAULT_ALBUMS = [
   {
     id: 'street-chess-2',
     category: 'Socials',
-    title: 'Street Chess 2',
+    title: 'Street Chess 2026',
     tag: 'Street Showcase',
     date: 'Aug 14, 2026',
     coverImage: 'street-chess-2',
