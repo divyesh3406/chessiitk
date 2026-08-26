@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import Footer from '../components/Footer';
+import { globalCache } from '../utils/cache';
 
 const AdminPortal = () => {
   const { token } = useAuth();
@@ -281,6 +282,9 @@ const AdminPortal = () => {
       });
       if (res.ok) {
         alert("Standings saved and published successfully!");
+        if (globalCache) {
+          globalCache.events = null;
+        }
         fetchStandingsForEvent(selectedEventId);
       } else {
         const data = await res.json();

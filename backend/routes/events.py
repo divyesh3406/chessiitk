@@ -82,7 +82,16 @@ def get_events():
         conn = get_db_connection()
         cur = conn.cursor() 
         
-        cur.execute("SELECT * FROM events ORDER BY event_date ASC")
+        cur.execute("""
+            SELECT e.*, EXISTS (
+                SELECT 1 FROM event_standings es 
+                WHERE es.event_id = e.id 
+                  AND es.standings_json IS NOT NULL 
+                  AND es.standings_json::text <> '[]'
+                  AND es.standings_json::text <> '""'
+                  AND es.standings_json::text <> 'null'
+            ) as has_standings FROM events e ORDER BY e.event_date ASC
+        """)
         
         columns = [col[0] for col in cur.description]
         events_data = [dict(zip(columns, row)) for row in cur.fetchall()]

@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { globalCache } from '../utils/cache';
@@ -15,21 +15,43 @@ const Events = () => {
   const [highlightedId, setHighlightedId] = useState(null);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('upcoming');
-  const [selectedYear, setSelectedYear] = useState('26-27 Tenure');
+   const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('events_active_tab') || 'upcoming';
+  });
+  const [selectedYear, setSelectedYear] = useState(() => {
+    return sessionStorage.getItem('events_selected_year') || '26-27 Tenure';
+  });
 
-  // Reset tab to 'upcoming' and year to current when location changes (except when custom tab or specific event scroll is requested)
+  const navType = useNavigationType();
+
+  // Track activeTab and selectedYear changes to persist them in sessionStorage
   useEffect(() => {
+    sessionStorage.setItem('events_active_tab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    sessionStorage.setItem('events_selected_year', selectedYear);
+  }, [selectedYear]);
+
+  // Reset tab and year when location changes (except when custom tab, specific event scroll is requested, or POP back navigation)
+  useLayoutEffect(() => {
     if (location.state?.defaultTab) {
       setActiveTab(location.state.defaultTab);
       if (location.state.defaultTab === 'past') {
         setSelectedYear('25-26 Tenure');
       }
-    } else if (!location.state?.scrollToEventId) {
+    } else if (location.state?.scrollToEventId) {
+      // Let scrollToEventId hook handle activeTab/selectedYear transitions
+    } else if (navType === 'POP') {
+      const savedTab = sessionStorage.getItem('events_active_tab');
+      const savedYear = sessionStorage.getItem('events_selected_year');
+      if (savedTab) setActiveTab(savedTab);
+      if (savedYear) setSelectedYear(savedYear);
+    } else {
       setActiveTab('upcoming');
       setSelectedYear('26-27 Tenure');
     }
-  }, [location]);
+  }, [location, navType]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
@@ -221,6 +243,7 @@ const Events = () => {
        shortDesc: dbEvent.short_description,
        fullDesc: dbEvent.event_briefing,
        register_link: dbEvent.register_link,
+       has_standings: dbEvent.has_standings,
        schedule: [] 
     }));
   };
@@ -380,6 +403,7 @@ const Events = () => {
              shortDesc: dbEvent.short_description,
              fullDesc: dbEvent.event_briefing,
              register_link: dbEvent.register_link,
+             has_standings: dbEvent.has_standings,
              schedule: [] 
           }));
           formattedDbEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -558,15 +582,59 @@ const Events = () => {
                     compareDate.setHours(0, 0, 0, 0);
                     const isPastEvent = compareDate < today;
 
-                    if (isPastEvent) {
-                      return (
-                        <div className="space-y-3">
+                    if (isPastEvent || event.has_standings) {
+                      let registrationButton = null;
+                      if (isPastEvent) {
+                        registrationButton = (
                           <button
                             disabled
                             className="block w-full text-center bg-surface-container-high text-on-surface-variant/40 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/10 text-xs font-label uppercase tracking-widest"
                           >
                             REGISTRATION CLOSED
                           </button>
+                        );
+                      } else if (isLolEvent) {
+                        registrationButton = isRegisteredForLol ? (
+                          <button
+                            disabled
+                            className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
+                          >
+                            REGISTERED ✓
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={handleRegisterLolClick}
+                            disabled={isFetchingLolProfile}
+                            className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
+                          >
+                            {isFetchingLolProfile ? "LOADING PROFILE..." : "REGISTER"}
+                          </button>
+                        );
+                      } else {
+                        let registrationUrl = null;
+                        try {
+                          const parsedUrl = new URL(event.register_link);
+                          if (['http:', 'https:'].includes(parsedUrl.protocol)) {
+                            registrationUrl = parsedUrl.href;
+                          }
+                        } catch {}
+                        if (registrationUrl) {
+                          registrationButton = (
+                            <a 
+                              href={registrationUrl} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
+                            >
+                              REGISTER
+                            </a>
+                          );
+                        }
+                      }
+
+                      return (
+                        <div className="space-y-3">
+                          {registrationButton}
                           <Link
                             to={`/events/results/${event.id}`}
                             className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
