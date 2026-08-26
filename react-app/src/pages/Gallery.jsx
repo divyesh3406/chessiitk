@@ -525,12 +525,8 @@ const Gallery = () => {
   const { isLoggedIn, token } = useAuth();
 
   const [albums, setAlbums] = useState(() => {
-    const saved = localStorage.getItem('gallery_albums_v2');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {}
-    }
+    // Clear legacy local storage albums to prevent caching outdated title parameters (e.g. 'Street Chess 2')
+    localStorage.removeItem('gallery_albums_v2');
     return DEFAULT_ALBUMS;
   });
 
