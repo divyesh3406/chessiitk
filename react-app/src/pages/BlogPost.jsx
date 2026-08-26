@@ -380,14 +380,14 @@ const BlogPost = () => {
             )}
           </div>
 
-          <div className="w-full h-[320px] sm:h-[450px] rounded-xl overflow-hidden mb-16 relative shadow-2xl shadow-black/50 bg-black/20">
+          <div className="w-full max-h-[600px] rounded-xl overflow-hidden mb-16 relative shadow-2xl shadow-black/50 bg-[#0e0e0e] flex items-center justify-center">
             <img 
               alt={dbPost.title} 
-              className="w-full h-full object-cover" 
+              className="w-full h-auto max-h-[600px] object-contain" 
               src={getImageUrl(dbPost.cover_image)}
               onError={(e) => { e.currentTarget.src = defaultBlogHero; }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent opacity-40 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent opacity-40 pointer-events-none"></div>
           </div>
 
           {/* Safely injects the LONGTEXT content string rendering paragraphs/embedded elements */}
