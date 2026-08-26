@@ -48,8 +48,28 @@ const Signup = () => {
       return;
     }
 
+    const contactRegex = /^\d{10}$/;
+    if (!contactRegex.test(contact)) {
+      setError("Contact number must be exactly 10 digits.");
+      setIsLoading(false);
+      return;
+    }
+
+    const rollRegex = /^\d+$/;
+    if (!rollRegex.test(rollNo)) {
+      setError("Roll Number must contain only digits.");
+      setIsLoading(false);
+      return;
+    }
+
     const isIITK = (m) => m.toLowerCase().endsWith('@iitk.ac.in');
     const isValidIITK = (m) => /\d{2}@iitk\.ac\.in$/i.test(m.trim());
+
+    if (!isIITK(email)) {
+      setError("Primary email must end with @iitk.ac.in.");
+      setIsLoading(false);
+      return;
+    }
 
     if (isIITK(email) && !isValidIITK(email)) {
       setError("IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in).");
@@ -182,7 +202,7 @@ const Signup = () => {
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
-          roll_no: rollNo.trim(),
+          roll_no: "",
           graduation_year: alumniGradYear.trim(),
           chess_username: chessUsername.trim(),
           contact: contact.trim(),
@@ -297,9 +317,6 @@ const Signup = () => {
               <p className="text-xs text-on-surface-variant leading-relaxed">
                 Please wait while admins verify your details. Your request has been recorded.
               </p>
-              <p className="text-xs text-primary font-mono bg-primary/5 border border-primary/20 p-3 rounded-xl">
-                Please wait, admins have been notified of your request.
-              </p>
               <div className="pt-2">
                 <Link
                   to="/"
@@ -350,17 +367,6 @@ const Signup = () => {
                     <option value="Female" className="bg-[#121212] text-on-surface">Female</option>
                     <option value="Prefer not to say" className="bg-[#121212] text-on-surface">Prefer not to say</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-1 ml-1">Roll No / Batch</label>
-                  <input
-                    type="text"
-                    value={rollNo}
-                    onChange={(e) => setRollNo(e.target.value)}
-                    className="appearance-none relative block w-full px-4 py-2.5 border border-outline-variant/20 bg-surface-container-lowest placeholder-on-surface-variant/30 text-on-surface rounded-xl focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-colors"
-                    placeholder="180123"
-                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
