@@ -101,30 +101,14 @@ const Blogs = () => {
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSection, setSelectedSection] = useState(() => {
-    const isReload = window.performance && 
-      (window.performance.navigation?.type === 1 || 
-       (performance.getEntriesByType("navigation")[0] && performance.getEntriesByType("navigation")[0].type === 'reload'));
-    if (isReload) {
-      return localStorage.getItem('selectedBlogSection') || 'Blogs';
-    }
-    return 'Blogs';
-  });
   const [viewMode, setViewMode] = useState('grid');
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (prevKeyRef.current !== location.key) {
       prevKeyRef.current = location.key;
-      if (selectedSection !== 'Blogs') {
-        setSelectedSection('Blogs');
-      }
     }
-  }, [location, selectedSection]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedBlogSection', selectedSection);
-  }, [selectedSection]);
+  }, [location]);
 
   // Create/Edit Mode Form Inputs 
   const [showEditor, setShowEditor] = useState(false);
@@ -237,10 +221,7 @@ const Blogs = () => {
     }
   }, []);
 
-  const filteredPosts = posts.filter(p => {
-    const isHistory = getPostYear(p) === 'Club History';
-    return selectedSection === 'Club History' ? isHistory : !isHistory;
-  });
+  const filteredPosts = posts;
 
   const handleStartEdit = (post) => {
     setEditingPostId(post.id);
@@ -421,58 +402,10 @@ const Blogs = () => {
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row gap-12 mt-8">
-          <div className="w-full md:w-1/4 flex flex-col gap-4">
-            <button
-              type="button"
-              onClick={() => setSelectedSection('Blogs')}
-              className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group cursor-pointer
-                ${selectedSection === 'Blogs' 
-                  ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
-                  : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
-                }`}
-            >
-              <span className="relative z-10 flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px] opacity-80">
-                  book
-                </span>
-                Blogs
-              </span>
-              {selectedSection === 'Blogs' && (
-                <span className="material-symbols-outlined relative z-10 text-[18px]">chevron_right</span>
-              )}
-              {selectedSection !== 'Blogs' && (
-                <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setSelectedSection('Club History')}
-              className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group cursor-pointer
-                ${selectedSection === 'Club History' 
-                  ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
-                  : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
-                }`}
-            >
-              <span className="relative z-10 flex items-center gap-3">
-                <span className="material-symbols-outlined text-[18px] opacity-80">
-                  history
-                </span>
-                Club History
-              </span>
-              {selectedSection === 'Club History' && (
-                <span className="material-symbols-outlined relative z-10 text-[18px]">chevron_right</span>
-              )}
-              {selectedSection !== 'Club History' && (
-                <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
-              )}
-            </button>
-          </div>
-
-          <div className="w-full md:w-3/4">
+        <div className="flex flex-col mt-8">
+          <div className="w-full">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-outline-variant/20 pb-4">
-              <h3 className="text-3xl sm:text-4xl font-serif font-bold text-on-surface">{selectedSection} Dispatches</h3>
+              <h3 className="text-3xl sm:text-4xl font-serif font-bold text-on-surface">All Dispatches</h3>
               <div className="flex space-x-2">
                 <button type="button" onClick={() => setViewMode('grid')} className={`p-2 border rounded-md transition-colors cursor-pointer ${viewMode === 'grid' ? 'border-primary text-primary bg-primary/10' : 'border-outline-variant/20 text-on-surface-variant hover:text-on-surface'}`} title="Grid View">
                   <span className="material-symbols-outlined">grid_view</span>
@@ -484,7 +417,7 @@ const Blogs = () => {
             </div>
 
             {filteredPosts.length === 0 ? (
-              <p className="text-gray-500 italic py-8">No articles found for {selectedSection}.</p>
+              <p className="text-gray-500 italic py-8">No articles found.</p>
             ) : (
               <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col space-y-6"}>
                 {filteredPosts.map((post, idx) => (
