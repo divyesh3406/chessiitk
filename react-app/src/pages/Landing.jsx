@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import Lenis from 'lenis';
 import fresherImg from '../assets/fresher_league_recap_1775765383248.png';
 import grandSwissImg from '../assets/grand_swiss_recap_1775765397656.png';
 import fideImg from '../assets/fide.png';
@@ -73,14 +74,39 @@ const Landing = () => {
   const heroRef = useRef(null);
   const [triggerStats, setTriggerStats] = useState(false);
 
+  // 1. Lenis Smooth Inertia scrolling controller
+  useEffect(() => {
+    // Initialize Lenis smooth scrolling with the golden timing parameters
+    const lenis = new Lenis({
+      duration: 1.5, 
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      lerp: 0.07, 
+      wheelMultiplier: 0.45, 
+      infinite: false,
+      syncTouch: false 
+    });
+
+    let rafId;
+    const raf = (time) => {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    };
+
+    rafId = requestAnimationFrame(raf);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+    };
+  }, []);
+
   // Scroll tracking across the pinned container (520vh for 4 smooth in-place stages with generous pacing)
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end end"]
   });
 
-  // Center "CHESS CLUB IITK" zooms forward into the screen and dissolves away
-  const centerScale = useTransform(scrollYProgress, [0, 0.20], [1, 8]);
+  // Center "CHESS CLUB IITK" dissolves away without scaling to prevent layout/compositor lag
   const centerOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 0.8, 0]);
   const heroVisibility = useTransform(scrollYProgress, v => (v >= 0.20 ? 'none' : 'block'));
   const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
@@ -104,9 +130,9 @@ const Landing = () => {
   const eventVisibility = useTransform(scrollYProgress, v => (v < 0.66 ? 'none' : 'flex'));
 
   useEffect(() => {
-    document.title = "Chess Club IITK";
+    document.title = "Chess Club";
     return () => {
-      document.title = "Chess Club IITK";
+      document.title = "Chess Club";
     };
   }, []);
 
@@ -238,8 +264,7 @@ const Landing = () => {
             {/* Center Brand Title */}
             <motion.div
               style={{ 
-                opacity: centerOpacity, 
-                scale: centerScale
+                opacity: centerOpacity
               }}
               className="absolute inset-0 flex flex-col items-center justify-center px-4 max-w-4xl mx-auto"
             >
@@ -290,17 +315,17 @@ const Landing = () => {
                 { 
                   id: 1, 
                   title: "Play and Grow", 
-                  desc: "We believe that mastery begins with consistent practice. Our club provides a welcoming environment where players of all experience levels can engage in regular over-the-board play, participate in casual match analysis, and benefit from peer-led mentorship designed to steadily elevate your game." 
+                  desc: "Our club provides a welcoming environment where players of all experience levels can engage in regular over-the-board play, participate in casual match analysis, and benefit from peer-led mentorship." 
                 },
                 { 
                   id: 2, 
                   title: "Competitive Environment", 
-                  desc: "The club hosts regular online and over-the-board campus tournaments open to all skill levels. We invite everyone to join this competitive environment, designed to foster creative tactical thinking, sharpen strategic skills, and help players flourish. Discover your potential and test your limits against peers in structured, official matchplay." 
+                  desc: "The club hosts regular online and over-the-board campus tournaments open to all skill levels. We invite everyone to join this competitive environment, designed to foster creative tactical thinking, sharpen strategic skills, and help players flourish." 
                 },
                 { 
                   id: 3, 
                   title: "Exclusive Events & Talk Shows", 
-                  desc: "The club hosts premier events, including the Chess Masters Premier League (CMPL) and official FIDE-rated tournaments. Additionally, we feature exclusive talk shows and masterclasses with renowned global chess personalities, including World Champion GM Gukesh Dommaraju, GM Arjun Erigaisi, ChessBase India's Sagar Shah, and Chess.com CEO Erik Allebest." 
+                  desc: "We feature exclusive talk shows and masterclasses with renowned global chess personalities, including World Champion GM Gukesh Dommaraju, GM Arjun Erigaisi, ChessBase India's Sagar Shah, and Chess.com CEO Erik Allebest." 
                 }
               ].map((card) => (
                 <div key={card.id} className="relative group cursor-pointer h-full">
