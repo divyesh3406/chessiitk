@@ -43,65 +43,16 @@ h1, h2, h3, h4, h5, h6, .font-serif { font-family: 'Newsreader', serif; }
   font-size: 1.5rem; 
   color: #f2ca50; 
 }
+.blog-content img {
+  max-width: 100%;
+  height: auto;
+  max-height: 600px;
+  object-fit: contain;
+  margin: 2rem auto;
+  display: block;
+  border-radius: 0.75rem;
+}
 
 .font-handwritten {
   font-family: 'Caveat', cursive;
-}
-
-/* Responsive Scroll Snapping Container and Section Layouts */
-@media (min-width: 768px) {
-  .scroll-snap-container {
-    height: calc(100dvh - 73px);
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .scroll-snap-container::-webkit-scrollbar {
-    display: none;
-  }
-
-  .scroll-snap-container {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-
-  .scroll-snap-section {
-    height: calc(100dvh - 73px);
-    width: 100%;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  .scroll-snap-footer {
-    scroll-snap-align: end;
-    scroll-snap-stop: always;
-    flex-shrink: 0;
-  }
-}
-
-@media (max-width: 767px) {
-  .scroll-snap-container {
-    height: auto;
-    overflow-y: visible;
-  }
-
-  .scroll-snap-section {
-    min-height: calc(100dvh - 73px);
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: visible;
-    padding: 4rem 1rem;
-    flex-shrink: 0;
-  }
 }
