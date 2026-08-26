@@ -979,17 +979,19 @@ const Gallery = () => {
 
   return (
     <>
-      <div className="px-6 md:px-12 pb-20 max-w-7xl mx-auto min-h-screen text-on-surface">
-      <header className="py-10 text-center max-w-3xl mx-auto">
-        <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-3">
-          Visual Archive
-        </p>
-        <h1 className="text-5xl sm:text-6xl font-serif mb-8">
-          The Gallery of <span className="text-primary">Kings</span>
-        </h1>
-        <p className="text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base mb-6">
-          Moments of triumph, intense calculations, and community memories captured through the lens.
-        </p>
+      <div className="px-4 sm:px-6 md:px-12 pb-20 max-w-7xl mx-auto min-h-screen text-on-surface">
+      <header className="mb-8 md:mb-10 pt-4 sm:pt-6 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/10 pb-8">
+        <div className="max-w-3xl">
+          <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-2">
+            Visual Archive
+          </p>
+          <h1 className="text-4xl font-serif leading-tight text-on-surface sm:text-5xl">
+            Gallery: Memories & Matches
+          </h1>
+          <p className="mt-3 text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base">
+            Moments of triumph, intense calculations, and community memories captured through the lens.
+          </p>
+        </div>
       </header>
 
 
@@ -1003,7 +1005,7 @@ const Gallery = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="mb-20 bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-lg transition-all shadow-2xl max-w-5xl mx-auto group"
+            className="mb-20 bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10 hover:border-primary/20 hover:shadow-lg transition-all shadow-2xl max-w-7xl mx-auto group"
           >
             <div className="flex flex-col lg:flex-row">
               {/* Image side */}
@@ -1075,7 +1077,7 @@ const Gallery = () => {
                         className="bg-primary text-[#3c2f00] font-bold px-6 py-3 rounded-lg shadow-lg hover:scale-[1.03] active:scale-95 transition-all flex items-center gap-2 hover:bg-primary-container outline-none"
                       >
                         <span className="material-symbols-outlined text-lg">photo_library</span>
-                        <span>View Captures ({FIDE_RATED_PHOTOS.length})</span>
+                        <span>View Gallery ({FIDE_RATED_PHOTOS.length})</span>
                       </button>
 
                       {isAdmin && (
@@ -1109,10 +1111,10 @@ const Gallery = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="mb-24 max-w-5xl mx-auto"
+              className="mb-24 max-w-7xl mx-auto"
             >
-              <div className="text-center mb-10">
-                <h2 className="text-4xl font-serif text-on-surface">
+              <div className="mb-8 border-b border-outline-variant/10 pb-4">
+                <h2 className="text-2xl sm:text-3xl font-serif text-on-surface">
                   Active Season
                 </h2>
               </div>
@@ -1195,11 +1197,11 @@ const Gallery = () => {
       {/* Past Seasons Section */}
       {previousTenures.length > 0 && (
         <section className="mb-24 max-w-7xl mx-auto px-4 md:px-0">
-          <div className="text-center mb-10">
-            <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-2">
+          <div className="mb-8 border-b border-outline-variant/10 pb-4">
+            <p className="text-primary font-label text-[10px] tracking-[0.3em] uppercase mb-1">
               Our Legacy
             </p>
-            <h2 className="text-4xl font-serif text-on-surface">
+            <h2 className="text-2xl sm:text-3xl font-serif text-on-surface">
               Past Seasons
             </h2>
           </div>
