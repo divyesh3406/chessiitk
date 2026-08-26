@@ -78,12 +78,12 @@ const Landing = () => {
   useEffect(() => {
     // Initialize Lenis smooth scrolling with the golden timing parameters
     const lenis = new Lenis({
-      duration: 1.5, // slightly longer duration to feel more graceful
-      easing: (t) => 1 - Math.pow(1 - t, 4), // easeOutQuart
-      lerp: 0.02, // lower lerp to make scroll feel heavier and lag behind more
-      wheelMultiplier: 0.3, // decrease scroll speed by 40%
+      duration: 1.2, 
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      lerp: 0.1, 
+      wheelMultiplier: 0.8, 
       infinite: false,
-      syncTouch: false // maintain native touch behavior on touch devices
+      syncTouch: false 
     });
 
     let rafId;
@@ -94,8 +94,38 @@ const Landing = () => {
 
     rafId = requestAnimationFrame(raf);
 
+    let isAnimating = false;
+    const handleWheel = (e) => {
+      if (window.scrollY < window.innerHeight * 5.0 && e.deltaY !== 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (isAnimating) return;
+        
+        isAnimating = true;
+        const direction = e.deltaY > 0 ? 1 : -1;
+        const stageHeight = window.innerHeight * 1.3; // 520vh / 4 stages
+        
+        const currentStage = Math.round(window.scrollY / stageHeight);
+        let nextStage = currentStage + direction;
+        
+        if (nextStage < 0) nextStage = 0;
+        if (nextStage > 4) nextStage = 4;
+        
+        lenis.scrollTo(nextStage * stageHeight, {
+          duration: 1.0,
+          onComplete: () => {
+            setTimeout(() => { isAnimating = false; }, 100);
+          }
+        });
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false, capture: true });
+
     return () => {
       cancelAnimationFrame(rafId);
+      window.removeEventListener('wheel', handleWheel, { capture: true });
       lenis.destroy();
     };
   }, []);
