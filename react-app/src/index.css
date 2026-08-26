@@ -47,3 +47,40 @@ h1, h2, h3, h4, h5, h6, .font-serif { font-family: 'Newsreader', serif; }
 .font-handwritten {
   font-family: 'Caveat', cursive;
 }
+
+/* Scroll Snapping Container and Section Layouts */
+.scroll-snap-container {
+  height: calc(100dvh - 73px);
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-container::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-snap-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scroll-snap-section {
+  height: calc(100dvh - 73px);
+  width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.scroll-snap-footer {
+  scroll-snap-align: end;
+  scroll-snap-stop: always;
+  flex-shrink: 0;
+}

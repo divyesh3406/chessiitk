@@ -71,80 +71,115 @@ const AnimatedCounter = ({ value, duration = 1200, trigger }) => {
 const Landing = () => {
   const { isLoggedIn } = useAuth();
   const [nextEvent, setNextEvent] = useState(null);
-  const heroRef = useRef(null);
   const [triggerStats, setTriggerStats] = useState(false);
+  const [activeSection, setActiveSection] = useState(0);
+  const containerRef = useRef(null);
+  const isLockedRef = useRef(false);
 
-  // 1. Lenis Smooth Inertia scrolling controller
+  // Synchronize activeSection change with stats counters
   useEffect(() => {
-    // Initialize Lenis smooth scrolling with the golden timing parameters
-    const lenis = new Lenis({
-      duration: 1.5, 
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-      lerp: 0.07, 
-      wheelMultiplier: 0.45, 
-      infinite: false,
-      syncTouch: false 
-    });
+    if (activeSection === 2) {
+      setTriggerStats(true);
+    } else {
+      setTriggerStats(false);
+    }
+  }, [activeSection]);
 
-    let rafId;
-    const raf = (time) => {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    };
+  // Section scroll execution controller
+  const scrollToSection = (direction) => {
+    setActiveSection((current) => {
+      const nextIndex = current + direction;
+      if (nextIndex < 0 || nextIndex > 4) return current;
 
-    rafId = requestAnimationFrame(raf);
+      isLockedRef.current = true;
 
-    return () => {
-      cancelAnimationFrame(rafId);
-      lenis.destroy();
-    };
-  }, []);
+      const container = containerRef.current;
+      if (container) {
+        const sectionHeight = container.clientHeight;
+        let scrollTarget = nextIndex * sectionHeight;
+        if (nextIndex === 4) {
+          // Snap footer fully at the bottom of the container
+          scrollTarget = container.scrollHeight - sectionHeight;
+        }
 
-  // Scroll tracking across the pinned container (520vh for 4 smooth in-place stages with generous pacing)
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end end"]
-  });
-
-  // Center "CHESS CLUB IITK" dissolves away without scaling to prevent layout/compositor lag
-  const centerOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 0.8, 0]);
-  const heroVisibility = useTransform(scrollYProgress, v => (v >= 0.20 ? 'none' : 'block'));
-  const scrollIndicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
-
-  // STAGE 2: About Section materializes in-place in center of screen, stays readable, then dissolves
-  const aboutOpacity = useTransform(scrollYProgress, [0.16, 0.23, 0.38, 0.44], [0, 1, 1, 0]);
-  const aboutScale = useTransform(scrollYProgress, [0.16, 0.23, 0.38, 0.44], [0.92, 1, 1, 1.08]);
-  const aboutPointerEvents = useTransform(scrollYProgress, v => (v >= 0.20 && v <= 0.41 ? 'auto' : 'none'));
-  const aboutVisibility = useTransform(scrollYProgress, v => (v < 0.14 || v > 0.46 ? 'none' : 'flex'));
-
-  // STAGE 3: Dedicated Club Stats Section materializes in-place, stays readable, then dissolves
-  const statsOpacity = useTransform(scrollYProgress, [0.42, 0.49, 0.64, 0.70], [0, 1, 1, 0]);
-  const statsScale = useTransform(scrollYProgress, [0.42, 0.49, 0.64, 0.70], [0.92, 1, 1, 1.08]);
-  const statsPointerEvents = useTransform(scrollYProgress, v => (v >= 0.46 && v <= 0.67 ? 'auto' : 'none'));
-  const statsVisibility = useTransform(scrollYProgress, v => (v < 0.40 || v > 0.72 ? 'none' : 'flex'));
-
-  // STAGE 4: Upcoming Event materializes in-place in center of screen and HOLDS steadily with delay
-  const eventOpacity = useTransform(scrollYProgress, [0.68, 0.76, 1.0], [0, 1, 1]);
-  const eventScale = useTransform(scrollYProgress, [0.68, 0.76], [0.92, 1]);
-  const eventPointerEvents = useTransform(scrollYProgress, v => (v >= 0.72 ? 'auto' : 'none'));
-  const eventVisibility = useTransform(scrollYProgress, v => (v < 0.66 ? 'none' : 'flex'));
-
-  useEffect(() => {
-    document.title = "Chess Club";
-    return () => {
-      document.title = "Chess Club";
-    };
-  }, []);
-
-  useEffect(() => {
-    return scrollYProgress.on("change", (latest) => {
-      if (latest >= 0.42 && latest <= 0.70) {
-        setTriggerStats(true);
-      } else {
-        setTriggerStats(false);
+        container.scrollTo({
+          top: scrollTarget,
+          behavior: 'smooth'
+        });
       }
+
+      setTimeout(() => {
+        isLockedRef.current = false;
+      }, 1000); // 1000ms transition transition cooldown
+
+      return nextIndex;
     });
-  }, [scrollYProgress]);
+  };
+
+  // Wheel Event Handler (Desktop/Mouse/Trackpad)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      e.preventDefault(); // Lock native browser scroll response
+      if (isLockedRef.current) return;
+
+      const direction = e.deltaY > 0 ? 1 : -1;
+      scrollToSection(direction);
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+    };
+  }, [activeSection]);
+
+  // Touch Event Handler (Mobile/Tablet Swipes)
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let touchStartY = 0;
+
+    const handleTouchStart = (e) => {
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const handleTouchMove = (e) => {
+      // Prevent default elastic scroll bounces
+      e.preventDefault();
+    };
+
+    const handleTouchEnd = (e) => {
+      if (isLockedRef.current) return;
+
+      const touchEndY = e.changedTouches[0].clientY;
+      const diff = touchStartY - touchEndY;
+
+      if (Math.abs(diff) > 40) { // Swipe sensitivity threshold
+        const direction = diff > 0 ? 1 : -1;
+        scrollToSection(direction);
+      }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [activeSection]);
+
+  useEffect(() => {
+    document.title = "Chess Club IITK";
+    return () => {
+      document.title = "Chess Club IITK";
+    };
+  }, []);
 
   useEffect(() => {
     // Delay preloading by 2 seconds to prioritize main landing page resources
@@ -209,7 +244,7 @@ const Landing = () => {
   };
 
   return (
-    <>
+    <div ref={containerRef} className="scroll-snap-container bg-[#121212] relative">
       {/* SVG Filters for Dot Matrix and Tints */}
       <svg className="absolute w-0 h-0 pointer-events-none opacity-0" aria-hidden="true">
         <defs>
@@ -236,73 +271,70 @@ const Landing = () => {
         </defs>
       </svg>
 
-      {/* Unified 4-Stage Pinned Experience Container */}
-      <div ref={heroRef} className="relative h-[520vh] bg-[#121212]">
-        <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-[#121212]">
-          
-          {/* Subtle Aesthetic Cross Grid Pattern */}
-          <div 
-            className="absolute inset-0 opacity-[0.14] pointer-events-none"
-            style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, #ffffff 1.2px, transparent 0)`,
-              backgroundSize: '44px 44px'
-            }}
-          />
+      {/* Global Background Grid and Floating Chess Pieces (Fixed behind all sections) */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        {/* Subtle Aesthetic Cross Grid Pattern */}
+        <div 
+          className="absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #ffffff 1.2px, transparent 0)`,
+            backgroundSize: '44px 44px'
+          }}
+        />
 
-          {/* Dynamic Floating Chess Pieces */}
-          <FloatingChessPieces />
+        {/* Dynamic Floating Chess Pieces */}
+        <FloatingChessPieces />
 
-          {/* Vignette & Soft Center Glow */}
-          <div className="absolute inset-0 bg-radial from-transparent via-[#121212]/50 to-[#121212] pointer-events-none z-0" />
-          <div className="absolute w-[500px] h-[300px] rounded-full bg-primary/5 blur-[140px] pointer-events-none z-0" />
+        {/* Vignette & Soft Center Glow */}
+        <div className="absolute inset-0 bg-radial from-transparent via-[#121212]/50 to-[#121212]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] rounded-full bg-primary/5 blur-[140px]" />
+      </div>
 
-          {/* STAGE 1: HERO (Center Title) */}
-          <motion.div 
-            style={{ display: heroVisibility }}
-            className="absolute inset-0 pointer-events-none z-10 select-none"
+      {/* SECTION 1: HERO (Center Title) */}
+      <section className="scroll-snap-section relative z-10">
+        <div className="flex flex-col items-center justify-center px-4 max-w-4xl mx-auto text-center select-none">
+          <motion.h1 
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-sans font-black tracking-tight uppercase leading-[0.95] text-[#e5e2e1] drop-shadow-[0_15px_35px_rgba(0,0,0,0.95)]"
           >
-            {/* Center Brand Title */}
-            <motion.div
-              style={{ 
-                opacity: centerOpacity
-              }}
-              className="absolute inset-0 flex flex-col items-center justify-center px-4 max-w-4xl mx-auto"
-            >
-              <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-sans font-black tracking-tight uppercase leading-[0.95] text-[#e5e2e1] drop-shadow-[0_15px_35px_rgba(0,0,0,0.95)] text-center">
-                CHESS CLUB
-                <span className="block text-primary mt-3 sm:mt-4 font-sans font-black tracking-normal text-3xl sm:text-5xl md:text-6xl lg:text-7xl drop-shadow-[0_10px_25px_rgba(242,202,80,0.3)]">
-                  IITK
-                </span>
-              </h1>
+            CHESS CLUB
+            <span className="block text-primary mt-3 sm:mt-4 font-sans font-black tracking-normal text-3xl sm:text-5xl md:text-6xl lg:text-7xl drop-shadow-[0_10px_25px_rgba(242,202,80,0.3)]">
+              IITK
+            </span>
+          </motion.h1>
 
-              {/* Scroll Indicator */}
-              <motion.div 
-                style={{ opacity: scrollIndicatorOpacity }}
-                className="mt-10 flex flex-col items-center gap-2"
-              >
-                <span className="text-[10px] uppercase font-mono tracking-[0.3em] text-on-surface-variant/70">
-                  Scroll to Explore
-                </span>
-                <span className="material-symbols-outlined text-sm text-primary animate-bounce">
-                  keyboard_arrow_down
-                </span>
-              </motion.div>
-            </motion.div>
+          {/* Scroll Indicator */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="mt-10 flex flex-col items-center gap-2"
+          >
+            <span className="text-[10px] uppercase font-mono tracking-[0.3em] text-on-surface-variant/70">
+              Scroll to Explore
+            </span>
+            <span className="material-symbols-outlined text-sm text-primary animate-bounce">
+              keyboard_arrow_down
+            </span>
           </motion.div>
+        </div>
+      </section>
 
-          {/* STAGE 2: ABOUT CHESS CLUB (Transitions seamlessly in-place in the center of the screen!) */}
+      {/* SECTION 2: ABOUT CHESS CLUB */}
+      <section className="scroll-snap-section relative z-10 bg-transparent">
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6">
           <motion.div
-            style={{
-              opacity: aboutOpacity,
-              scale: aboutScale,
-              pointerEvents: aboutPointerEvents,
-              display: aboutVisibility
-            }}
-            className="absolute inset-0 z-20 w-full max-w-6xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6 overflow-y-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="w-full flex flex-col items-center justify-center"
           >
             <div className="text-center mb-6 max-w-3xl mx-auto">
+              <span className="text-primary font-label text-xs tracking-[0.3em] uppercase block mb-1">Who We Are</span>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-on-surface">About Chess Club</h2>
-              <p className="mt-4 text-zinc-400 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+              <p className="mt-4 text-zinc-400 text-xs sm:text-sm md:text-base max-w-2xl mx-auto leading-relaxed font-body">
                 Welcome to the Chess Club IIT Kanpur. Our mission is to foster intellectual growth, strategic thinking, and camaraderie through the timeless game of chess. We invite you to explore our upcoming schedules, participate in our organised events.
               </p>
               <p className="mt-3 text-primary font-bold text-xs sm:text-sm md:text-base tracking-[0.2em] uppercase font-label">
@@ -329,7 +361,7 @@ const Landing = () => {
                 }
               ].map((card) => (
                 <div key={card.id} className="relative group cursor-pointer h-full">
-                  <div className="relative z-10 rounded-2xl border border-outline-variant/15 bg-gradient-to-br from-surface-container-high/60 to-surface-container/20 backdrop-blur-md p-6 h-full min-h-[220px] md:min-h-[260px] flex flex-col justify-between overflow-hidden group-hover:scale-[1.02] group-hover:border-primary/40 group-hover:shadow-[0_12px_36px_rgba(242,202,80,0.12)] transition-all duration-500">
+                  <div className="relative z-10 rounded-2xl border border-outline-variant/15 bg-gradient-to-br from-surface-container-high/60 to-surface-container/20 backdrop-blur-md p-6 h-full min-h-[200px] md:min-h-[240px] flex flex-col justify-between overflow-hidden hover:scale-[1.02] hover:border-primary/40 hover:shadow-[0_12px_36px_rgba(242,202,80,0.12)] transition-all duration-500">
                     <div className="absolute inset-0 bg-[#f2ca50] scale-x-0 group-hover:scale-x-100 transition-transform origin-right group-hover:origin-left duration-500 ease-in-out z-0 pointer-events-none"></div>
                     <div className="absolute -top-12 -right-12 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors duration-500 pointer-events-none z-10"></div>
                     <div className="absolute inset-0 bg-[radial-gradient(#ffffff03_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none z-10"></div>
@@ -343,7 +375,7 @@ const Landing = () => {
                         <div className="w-12 h-[1.5px] bg-[#d4af37]/30 group-hover:bg-[#3c2f00]/40 mt-2 transition-colors duration-500"></div>
                       </div>
                       {card.desc && (
-                        <p className="mt-4 text-xs text-on-surface-variant group-hover:text-[#251a00]/80 transition-colors duration-500 leading-relaxed text-center">
+                        <p className="mt-4 text-xs text-on-surface-variant group-hover:text-[#251a00]/80 transition-colors duration-500 leading-relaxed text-center font-body">
                           {card.desc}
                         </p>
                       )}
@@ -353,21 +385,25 @@ const Landing = () => {
               ))}
             </div>
           </motion.div>
+        </div>
+      </section>
 
-          {/* STAGE 3: DEDICATED CLUB STATS (Materializes in-place with rich animated cards!) */}
+      {/* SECTION 3: DEDICATED CLUB STATS */}
+      <section className="scroll-snap-section relative z-10 bg-transparent">
+        <div className="w-full max-w-6xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6">
           <motion.div
-            style={{
-              opacity: statsOpacity,
-              scale: statsScale,
-              pointerEvents: statsPointerEvents,
-              display: statsVisibility
-            }}
-            className="absolute inset-0 z-25 w-full max-w-6xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6 overflow-y-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false }}
+            onViewportEnter={() => setTriggerStats(true)}
+            onViewportLeave={() => setTriggerStats(false)}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="w-full flex flex-col items-center justify-center"
           >
             <div className="text-center mb-8 max-w-2xl mx-auto">
               <span className="text-primary font-label text-xs tracking-[0.3em] uppercase">Impact & Heritage</span>
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-on-surface mt-1">Our Impact</h2>
-              <p className="mt-3 text-zinc-400 text-xs sm:text-sm leading-relaxed">
+              <p className="mt-3 text-zinc-400 text-xs sm:text-sm leading-relaxed font-body">
                 Fostering high-stakes competitive chess and empowering strategic thinkers across IIT Kanpur.
               </p>
             </div>
@@ -401,7 +437,7 @@ const Landing = () => {
               ].map((stat, idx) => (
                 <div
                   key={idx}
-                  className="relative group rounded-3xl border border-outline-variant/15 bg-gradient-to-br from-surface-container-high/70 to-surface-container/30 backdrop-blur-xl p-6 sm:p-7 flex flex-col justify-between overflow-hidden hover:border-primary/40 hover:scale-[1.03] hover:shadow-[0_15px_40px_rgba(242,202,80,0.15)] transition-all duration-500 cursor-pointer shadow-xl shadow-black/40"
+                  className="relative group rounded-3xl border border-outline-variant/15 bg-gradient-to-br from-surface-container-high/70 to-surface-container/30 backdrop-blur-xl p-6 sm:p-7 flex flex-col justify-between overflow-hidden hover:border-primary/40 hover:scale-[1.03] hover:shadow-[0_15px_40px_rgba(242,202,80,0.15)] transition-all duration-500 cursor-pointer shadow-xl shadow-black/40 h-full"
                 >
                   <div className="absolute inset-0 bg-[#f2ca50] scale-y-0 group-hover:scale-y-100 transition-transform origin-bottom duration-500 ease-in-out z-0 pointer-events-none opacity-90"></div>
                   <div className="absolute -top-10 -right-10 w-20 h-20 bg-primary/10 rounded-full blur-xl group-hover:bg-primary/20 transition-colors pointer-events-none z-10"></div>
@@ -425,16 +461,17 @@ const Landing = () => {
               ))}
             </div>
           </motion.div>
+        </div>
+      </section>
 
-          {/* STAGE 4: UPCOMING EVENT (Materializes in-place in the center of the screen!) */}
+      {/* SECTION 4: UPCOMING EVENT */}
+      <section className="scroll-snap-section relative z-10 bg-transparent">
+        <div className="w-full max-w-5xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6">
           <motion.div
-            style={{
-              opacity: eventOpacity,
-              scale: eventScale,
-              pointerEvents: eventPointerEvents,
-              display: eventVisibility
-            }}
-            className="absolute inset-0 z-30 w-full max-w-5xl mx-auto px-6 md:px-12 flex flex-col items-center justify-center py-6 overflow-y-auto"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="w-full"
           >
             <div className="text-center mb-6">
               <span className="text-primary font-label text-xs tracking-[0.3em] uppercase">Featured Arena</span>
@@ -450,7 +487,7 @@ const Landing = () => {
                 <div className="absolute inset-0 bg-[#f2ca50] opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out z-0 pointer-events-none"></div>
 
                 {/* Event Image Container */}
-                <div className="w-full md:w-[45%] relative aspect-[16/10] md:aspect-auto md:min-h-[300px] shrink-0 overflow-hidden z-10">
+                <div className="w-full md:w-[45%] relative aspect-[16/10] md:aspect-auto md:min-h-[260px] shrink-0 overflow-hidden z-10">
                   <img
                     alt={nextEvent.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
@@ -459,7 +496,6 @@ const Landing = () => {
                   <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-surface/70 via-transparent to-transparent"></div>
                   <div className="absolute inset-0 bg-[#d4af37]/5 mix-blend-overlay"></div>
 
-                  {/* Event Tag Floating Badge */}
                   {nextEvent.tag && (
                     <span className="absolute top-4 left-4 px-3 py-1 text-[9px] font-bold uppercase tracking-widest bg-surface/90 text-primary border border-primary/30 rounded-full backdrop-blur-sm shadow-md">
                       {nextEvent.tag}
@@ -506,12 +542,6 @@ const Landing = () => {
                         <span className="font-medium tracking-wide truncate max-w-[280px]">{nextEvent.format || "Tournament System"}</span>
                       </div>
                     </div>
-                    {nextEvent.prizes && (
-                      <div className="flex items-center gap-2 border border-primary/30 bg-primary/5 px-3.5 py-2 rounded-xl max-w-sm truncate shrink-0 shadow-lg shadow-black/20 group-hover:border-[#3c2f00]/30 group-hover:bg-[#3c2f00]/10 group-hover:text-[#3c2f00] transition-all duration-700">
-                        <span className="material-symbols-outlined text-[16px] text-primary group-hover:text-[#3c2f00] transition-colors duration-700 shrink-0">emoji_events</span>
-                        <span className="truncate font-bold tracking-wide text-primary group-hover:text-[#3c2f00] text-[10px] uppercase transition-colors duration-700">{nextEvent.prizes}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </button>
@@ -536,13 +566,14 @@ const Landing = () => {
               </Link>
             </div>
           </motion.div>
-
         </div>
-      </div>
+      </section>
 
-      {/* Original Footer positioned below pinned section so user scrolls into it */}
-      <Footer />
-    </>
+      {/* SECTION 5: FOOTER (Fits dynamically at the bottom) */}
+      <div className="scroll-snap-footer">
+        <Footer />
+      </div>
+    </div>
   );
 };
 export default Landing;
