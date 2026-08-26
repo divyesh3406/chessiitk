@@ -70,7 +70,8 @@ CORS(
     origins=[
         "http://localhost:5173",
         "https://chess-club-iitk-myfork.vercel.app",
-        "https://chess-club-iitk-w7u5.vercel.app"
+        "https://chess-club-iitk-w7u5.vercel.app",
+        "https://www.chessclubiitk.in"
     ]
 )
 
