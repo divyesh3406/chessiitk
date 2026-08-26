@@ -75,6 +75,7 @@ CORS(
         "https://chessclubiitk.in"
     ]
 )
+##test
 
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(blogs_bp, url_prefix='/api')
