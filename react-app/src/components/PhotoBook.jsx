@@ -117,10 +117,7 @@ const PhotoBook = ({ photos = [], title = "Current Tenure", subtitle = "Chess Cl
               <h3 className="font-serif text-2xl text-primary tracking-wide leading-tight mb-2">{title}</h3>
               <p className="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/80">{subtitle}</p>
             </div>
-            <div className="h-0.5 w-12 bg-primary/30" />
-            <p className="text-[9px] font-label text-on-surface-variant/60 uppercase tracking-widest max-w-[160px]">
-              Visual Archives
-            </p>
+
           </div>
         </div>
       );

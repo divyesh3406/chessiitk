@@ -48,16 +48,16 @@ const Signup = () => {
       return;
     }
 
-    const contactRegex = /^\d{10}$/;
-    if (!contactRegex.test(contact)) {
-      setError("Contact number must be exactly 10 digits.");
+    // Primary Roll Number validation (must contain only numbers/digits)
+    if (!/^\d+$/.test(rollNo.trim())) {
+      setError("Roll number must contain digits only.");
       setIsLoading(false);
       return;
     }
 
-    const rollRegex = /^\d+$/;
-    if (!rollRegex.test(rollNo)) {
-      setError("Roll Number must contain only digits.");
+    // Phone validation (exactly 10 digits)
+    if (!/^\d{10}$/.test(contact.trim())) {
+      setError("Phone number must be exactly 10 digits.");
       setIsLoading(false);
       return;
     }
@@ -66,12 +66,11 @@ const Signup = () => {
     const isValidIITK = (m) => /\d{2}@iitk\.ac\.in$/i.test(m.trim());
 
     if (!isIITK(email)) {
-      setError("Primary email must end with @iitk.ac.in.");
+      setError("Please include @iitk.ac.in in your IITK email address.");
       setIsLoading(false);
       return;
     }
-
-    if (isIITK(email) && !isValidIITK(email)) {
+    if (!isValidIITK(email)) {
       setError("IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in).");
       setIsLoading(false);
       return;
@@ -187,6 +186,13 @@ const Signup = () => {
 
     const isIITK = (m) => m.toLowerCase().endsWith('@iitk.ac.in');
     const isValidIITK = (m) => /\d{2}@iitk\.ac\.in$/i.test(m.trim());
+
+    // Contact Number check (if provided, must be exactly 10 digits)
+    if (contact.trim() && !/^\d{10}$/.test(contact.trim())) {
+      setError("Phone number must be exactly 10 digits.");
+      setIsLoading(false);
+      return;
+    }
 
     if (isIITK(email) && !isValidIITK(email)) {
       setError("IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in).");
@@ -314,8 +320,8 @@ const Signup = () => {
                 <span className="material-symbols-outlined text-3xl">hourglass_top</span>
               </div>
               <h3 className="text-xl font-serif text-on-surface font-bold">Admins Have Been Notified</h3>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Please wait while admins verify your details. Your request has been recorded.
+              <p className="text-xs text-primary font-mono bg-primary/5 border border-primary/20 p-3 rounded-xl">
+                Please wait, admins have been notified of your request.
               </p>
               <div className="pt-2">
                 <Link
@@ -385,6 +391,8 @@ const Signup = () => {
                     <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-1 ml-1">Contact No</label>
                     <input
                       type="tel"
+                      pattern="\d{10}"
+                      title="Phone number must be exactly 10 digits"
                       value={contact}
                       onChange={(e) => setContact(e.target.value)}
                       className="appearance-none relative block w-full px-4 py-2.5 border border-outline-variant/20 bg-surface-container-lowest placeholder-on-surface-variant/30 text-on-surface rounded-xl focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm transition-colors"
@@ -444,13 +452,15 @@ const Signup = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-1.5 ml-1" htmlFor="roll-number">Roll Number</label>
                   <input
                     id="roll-number"
                     type="text"
                     required
+                    pattern="\d+"
+                    title="Roll number must contain digits only"
                     value={rollNo}
                     onChange={(e) => setRollNo(e.target.value)}
                     className="appearance-none relative block w-full px-4 py-2.5 border border-outline-variant/20 bg-surface-container-lowest placeholder-on-surface-variant/30 text-on-surface rounded-xl focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
@@ -464,6 +474,8 @@ const Signup = () => {
                     id="contact-number"
                     type="tel"
                     required
+                    pattern="\d{10}"
+                    title="Phone number must be exactly 10 digits"
                     value={contact}
                     onChange={(e) => setContact(e.target.value)}
                     className="appearance-none relative block w-full px-4 py-2.5 border border-outline-variant/20 bg-surface-container-lowest placeholder-on-surface-variant/30 text-on-surface rounded-xl focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
@@ -496,6 +508,14 @@ const Signup = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onInvalid={(e) => {
+                    if (e.target.value && !e.target.value.toLowerCase().endsWith('@iitk.ac.in')) {
+                      e.target.setCustomValidity("Please include @iitk.ac.in");
+                    } else {
+                      e.target.setCustomValidity("");
+                    }
+                  }}
+                  onInput={(e) => e.target.setCustomValidity("")}
                   className="appearance-none relative block w-full px-4 py-2.5 border border-outline-variant/20 bg-surface-container-lowest placeholder-on-surface-variant/30 text-on-surface rounded-xl focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:z-10 sm:text-sm transition-colors"
                   placeholder="student@iitk.ac.in"
                 />

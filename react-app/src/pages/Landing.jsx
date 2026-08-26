@@ -316,17 +316,17 @@ const Landing = () => {
                 { 
                   id: 1, 
                   title: "Play and Grow", 
-                  desc: "We believe that mastery begins with consistent practice. Our club provides a welcoming environment where players of all experience levels can engage in regular over-the-board play, participate in casual match analysis, and benefit from peer-led mentorship designed to steadily elevate your game." 
+                  desc: "Our club provides a welcoming environment where players of all experience levels can engage in regular over-the-board play, participate in casual match analysis, and benefit from peer-led mentorship." 
                 },
                 { 
                   id: 2, 
                   title: "Competitive Environment", 
-                  desc: "The club hosts regular online and over-the-board campus tournaments open to all skill levels. We invite everyone to join this competitive environment, designed to foster creative tactical thinking, sharpen strategic skills, and help players flourish. Discover your potential and test your limits against peers in structured, official matchplay." 
+                  desc: "The club hosts regular online and over-the-board campus tournaments open to all skill levels. We invite everyone to join this competitive environment, designed to foster creative tactical thinking, sharpen strategic skills, and help players flourish." 
                 },
                 { 
                   id: 3, 
                   title: "Exclusive Events & Talk Shows", 
-                  desc: "The club hosts premier events, including the Chess Masters Premier League (CMPL) and official FIDE-rated tournaments. Additionally, we feature exclusive talk shows and masterclasses with renowned global chess personalities, including World Champion GM Gukesh Dommaraju, GM Arjun Erigaisi, ChessBase India's Sagar Shah, and Chess.com CEO Erik Allebest." 
+                  desc: "We feature exclusive talk shows and masterclasses with renowned global chess personalities, including World Champion GM Gukesh Dommaraju, GM Arjun Erigaisi, ChessBase India's Sagar Shah, and Chess.com CEO Erik Allebest." 
                 }
               ].map((card) => (
                 <div key={card.id} className="relative group cursor-pointer h-full">

@@ -73,9 +73,12 @@ CORS(
         "http://localhost:5175",
         "http://localhost:5176",
         "https://chess-club-iitk-myfork.vercel.app",
-        "https://chess-club-iitk-w7u5.vercel.app"
+        "https://chess-club-iitk-w7u5.vercel.app",
+        "https://www.chessclubiitk.in",
+        "https://chessclubiitk.in"
     ]
 )
+##test
 
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(blogs_bp, url_prefix='/api')
