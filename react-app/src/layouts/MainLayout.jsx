@@ -290,6 +290,7 @@ const MainLayout = ({ children }) => {
                 >
                   Close
                 </button>
+                {/*
                 {isLoggedIn ? (
                   isRegisteredForLol && isLolEvent ? (
                     <button
@@ -317,6 +318,7 @@ const MainLayout = ({ children }) => {
                     Login to Register
                   </Link>
                 )}
+                */}
               </div>
             </div>
           </motion.div>

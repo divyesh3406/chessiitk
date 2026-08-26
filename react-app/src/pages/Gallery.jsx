@@ -28,9 +28,9 @@ const FIDE_2526_KEYS = Object.keys(FIDE_2526_GLOB).sort((a, b) => {
   const matchA = a.match(/\/(\d+)\.\w+$/);
   const matchB = b.match(/\/(\d+)\.\w+$/);
   if (matchA && matchB) {
-    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+    return parseInt(matchB[1], 10) - parseInt(matchA[1], 10);
   }
-  return a.localeCompare(b);
+  return b.localeCompare(a);
 });
 const FIDE_2526_PHOTOS = FIDE_2526_KEYS.map(key => FIDE_2526_GLOB[key].default);
 
@@ -39,7 +39,7 @@ const FIDE_RATED_PHOTOS = FIDE_2526_PHOTOS;
 
 // Dynamically import all images in the Street Chess folder using Vite's glob import
 const STREET_CHESS_GLOB = import.meta.glob('../assets/Street Chess/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
-const STREET_CHESS_KEYS = Object.keys(STREET_CHESS_GLOB).sort((a, b) => a.localeCompare(b));
+const STREET_CHESS_KEYS = Object.keys(STREET_CHESS_GLOB).sort((a, b) => b.localeCompare(a));
 const STREET_CHESS_PHOTOS = STREET_CHESS_KEYS.map(key => STREET_CHESS_GLOB[key].default).filter((_, idx) => idx !== 5);
 
 // Dynamically import all images in the Grand Swiss folder using Vite's glob import
@@ -53,9 +53,9 @@ const CHESS_HOUR_KEYS = Object.keys(CHESS_HOUR_GLOB).sort((a, b) => {
   const matchA = a.match(/\/(\d+)\.\w+$/);
   const matchB = b.match(/\/(\d+)\.\w+$/);
   if (matchA && matchB) {
-    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+    return parseInt(matchB[1], 10) - parseInt(matchA[1], 10);
   }
-  return a.localeCompare(b);
+  return b.localeCompare(a);
 });
 const CHESS_HOUR_PHOTOS = CHESS_HOUR_KEYS.map(key => CHESS_HOUR_GLOB[key].default);
 
@@ -65,9 +65,9 @@ const STREET_CHESS_2_KEYS = Object.keys(STREET_CHESS_2_GLOB).sort((a, b) => {
   const matchA = a.match(/\/(\d+)\.\w+$/);
   const matchB = b.match(/\/(\d+)\.\w+$/);
   if (matchA && matchB) {
-    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+    return parseInt(matchB[1], 10) - parseInt(matchA[1], 10);
   }
-  return a.localeCompare(b);
+  return b.localeCompare(a);
 });
 const STREET_CHESS_2_PHOTOS = STREET_CHESS_2_KEYS.map(key => STREET_CHESS_2_GLOB[key].default);
 
@@ -77,9 +77,9 @@ const CHAMPIONSHIP_2026_KEYS = Object.keys(CHAMPIONSHIP_2026_GLOB).sort((a, b) =
   const matchA = a.match(/\/(\d+)\.\w+$/);
   const matchB = b.match(/\/(\d+)\.\w+$/);
   if (matchA && matchB) {
-    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+    return parseInt(matchB[1], 10) - parseInt(matchA[1], 10);
   }
-  return a.localeCompare(b);
+  return b.localeCompare(a);
 });
 const CHAMPIONSHIP_2026_PHOTOS = CHAMPIONSHIP_2026_KEYS.map(key => CHAMPIONSHIP_2026_GLOB[key].default);
 
@@ -477,7 +477,7 @@ const sortAlbumsChronologically = (list) => {
     const timeA = getAlbumTime(a);
     const timeB = getAlbumTime(b);
     if (timeA !== null && timeB !== null) {
-      return timeA - timeB;
+      return timeB - timeA;
     }
     if (timeA === null && timeB !== null) return 1;
     if (timeA !== null && timeB === null) return -1;
@@ -982,14 +982,11 @@ const Gallery = () => {
       <div className="px-4 sm:px-6 md:px-12 pb-20 max-w-7xl mx-auto min-h-screen text-on-surface">
       <header className="mb-8 md:mb-10 pt-4 sm:pt-6 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/10 pb-8">
         <div className="max-w-3xl">
-          <p className="text-primary font-label text-xs tracking-[0.3em] uppercase mb-2">
-            Visual Archive
-          </p>
           <h1 className="text-4xl font-serif leading-tight text-on-surface sm:text-5xl">
-            Gallery: Memories & Matches
+            Gallery
           </h1>
           <p className="mt-3 text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base">
-            Moments of triumph, intense calculations, and community memories captured through the lens.
+            Photos from our matches, workshops, and meetups.
           </p>
         </div>
       </header>
