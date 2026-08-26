@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+ import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { API_BASE_URL } from '../config';
@@ -28,13 +28,11 @@ const formatBlogDate = (raw) => {
 };
 
 const getBlogTag = (post) => {
-  if (!post) return "Tournament News";
-  if (post.tag) return post.tag;
-  const standardTags = ["Tournament News", "Event Recap", "Puzzle Analytics"];
-  if (post.subtitle && standardTags.includes(post.subtitle.trim())) {
-    return post.subtitle.trim();
+  if (!post) return "Event Recap";
+  if (post.title && post.title.includes("The Story of Chess Club IITK")) {
+    return "Club History";
   }
-  return "Tournament News";
+  return "Event Recap";
 };
 
 const getBlogExcerpt = (post, maxLength = 180) => {
@@ -103,14 +101,14 @@ const Blogs = () => {
 
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState(() => {
+  const [selectedSection, setSelectedSection] = useState(() => {
     const isReload = window.performance && 
       (window.performance.navigation?.type === 1 || 
        (performance.getEntriesByType("navigation")[0] && performance.getEntriesByType("navigation")[0].type === 'reload'));
     if (isReload) {
-      return localStorage.getItem('selectedBlogYear') || '26-27 Tenure';
+      return localStorage.getItem('selectedBlogSection') || 'Blogs';
     }
-    return '26-27 Tenure';
+    return 'Blogs';
   });
   const [viewMode, setViewMode] = useState('grid');
   const [error, setError] = useState("");
@@ -118,22 +116,22 @@ const Blogs = () => {
   useEffect(() => {
     if (prevKeyRef.current !== location.key) {
       prevKeyRef.current = location.key;
-      if (selectedYear !== '26-27 Tenure') {
-        setSelectedYear('26-27 Tenure');
+      if (selectedSection !== 'Blogs') {
+        setSelectedSection('Blogs');
       }
     }
-  }, [location, selectedYear]);
+  }, [location, selectedSection]);
 
   useEffect(() => {
-    localStorage.setItem('selectedBlogYear', selectedYear);
-  }, [selectedYear]);
+    localStorage.setItem('selectedBlogSection', selectedSection);
+  }, [selectedSection]);
 
   // Create/Edit Mode Form Inputs 
   const [showEditor, setShowEditor] = useState(false);
   const [editingPostId, setEditingPostId] = useState(null);
   const [newTitle, setNewTitle] = useState("");
   const [newSubtitle, setNewSubtitle] = useState("");
-  const [newTag, setNewTag] = useState("Tournament News");
+  const [newTag, setNewTag] = useState("Event Recap");
   const [newContent, setNewContent] = useState("");
   const [newCover, setNewCover] = useState("");
   const [newAuthorName, setNewAuthorName] = useState("");
@@ -239,19 +237,10 @@ const Blogs = () => {
     }
   }, []);
 
-  const uniqueYears = Array.from(new Set(posts.map(p => getPostYear(p))))
-    .filter(y => y !== 'Club History')
-    .sort((a, b) => b.localeCompare(a));
-  const hasHistory = posts.some(p => getPostYear(p) === 'Club History');
-  const yearsList = hasHistory ? [...uniqueYears, 'Club History'] : (uniqueYears.length > 0 ? uniqueYears : ['26-27 Tenure']);
-
-  useEffect(() => {
-    if (!loading && yearsList.length > 0 && !yearsList.includes(selectedYear)) {
-      setSelectedYear(yearsList[0]);
-    }
-  }, [loading, yearsList, selectedYear]);
-
-  const filteredPosts = posts.filter(p => getPostYear(p) === selectedYear);
+  const filteredPosts = posts.filter(p => {
+    const isHistory = getPostYear(p) === 'Club History';
+    return selectedSection === 'Club History' ? isHistory : !isHistory;
+  });
 
   const handleStartEdit = (post) => {
     setEditingPostId(post.id);
@@ -404,9 +393,8 @@ const Blogs = () => {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <select value={newTag} onChange={(e) => setNewTag(e.target.value)} className="w-full bg-surface-container-lowest border border-outline-variant/20 p-3 rounded-xl text-sm focus:outline-primary text-on-surface">
-                  <option value="Tournament News">Tournament News</option>
                   <option value="Event Recap">Event Recap</option>
-                  <option value="Puzzle Analytics">Puzzle Analytics</option>
+                  <option value="Club History">Club History</option>
                 </select>
                 <div className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant/20 px-3 py-1.5 rounded-xl">
                   <input type="text" placeholder="Banner Graphic URL" value={newCover} onChange={(e) => setNewCover(e.target.value)} className="flex-grow bg-transparent text-sm text-on-surface focus:outline-none py-1.5" />
@@ -435,36 +423,56 @@ const Blogs = () => {
 
         <div className="flex flex-col md:flex-row gap-12 mt-8">
           <div className="w-full md:w-1/4 flex flex-col gap-4">
-            {yearsList.map((year) => (
-              <button
-                key={year}
-                type="button"
-                onClick={() => setSelectedYear(year)}
-                className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group cursor-pointer
-                  ${selectedYear === year 
-                    ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
-                    : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
-                  }`}
-              >
-                <span className="relative z-10 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[18px] opacity-80">
-                    {year === 'Club History' ? 'history' : 'calendar_month'}
-                  </span>
-                  {year}
+            <button
+              type="button"
+              onClick={() => setSelectedSection('Blogs')}
+              className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group cursor-pointer
+                ${selectedSection === 'Blogs' 
+                  ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
+                  : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
+                }`}
+            >
+              <span className="relative z-10 flex items-center gap-3">
+                <span className="material-symbols-outlined text-[18px] opacity-80">
+                  book
                 </span>
-                {selectedYear === year && (
-                  <span className="material-symbols-outlined relative z-10 text-[18px]">chevron_right</span>
-                )}
-                {selectedYear !== year && (
-                  <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
-                )}
-              </button>
-            ))}
+                Blogs
+              </span>
+              {selectedSection === 'Blogs' && (
+                <span className="material-symbols-outlined relative z-10 text-[18px]">chevron_right</span>
+              )}
+              {selectedSection !== 'Blogs' && (
+                <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSelectedSection('Club History')}
+              className={`w-full px-6 py-4 rounded-2xl text-sm font-bold uppercase tracking-widest transition-all duration-300 relative overflow-hidden flex items-center justify-between group cursor-pointer
+                ${selectedSection === 'Club History' 
+                  ? 'bg-primary text-on-primary shadow-lg shadow-primary/30 border-none' 
+                  : 'bg-surface-container-low border border-outline-variant/30 text-on-surface hover:border-primary hover:text-primary'
+                }`}
+            >
+              <span className="relative z-10 flex items-center gap-3">
+                <span className="material-symbols-outlined text-[18px] opacity-80">
+                  history
+                </span>
+                Club History
+              </span>
+              {selectedSection === 'Club History' && (
+                <span className="material-symbols-outlined relative z-10 text-[18px]">chevron_right</span>
+              )}
+              {selectedSection !== 'Club History' && (
+                <div className="absolute inset-0 bg-primary/5 translate-x-[-100%] group-hover:translate-x-[0%] transition-transform duration-500 ease-out"></div>
+              )}
+            </button>
           </div>
 
           <div className="w-full md:w-3/4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b border-outline-variant/20 pb-4">
-              <h3 className="text-3xl sm:text-4xl font-serif font-bold text-on-surface">{selectedYear} Dispatches</h3>
+              <h3 className="text-3xl sm:text-4xl font-serif font-bold text-on-surface">{selectedSection} Dispatches</h3>
               <div className="flex space-x-2">
                 <button type="button" onClick={() => setViewMode('grid')} className={`p-2 border rounded-md transition-colors cursor-pointer ${viewMode === 'grid' ? 'border-primary text-primary bg-primary/10' : 'border-outline-variant/20 text-on-surface-variant hover:text-on-surface'}`} title="Grid View">
                   <span className="material-symbols-outlined">grid_view</span>
@@ -476,7 +484,7 @@ const Blogs = () => {
             </div>
 
             {filteredPosts.length === 0 ? (
-              <p className="text-gray-500 italic py-8">No articles found for {selectedYear}.</p>
+              <p className="text-gray-500 italic py-8">No articles found for {selectedSection}.</p>
             ) : (
               <div className={viewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "flex flex-col space-y-6"}>
                 {filteredPosts.map((post, idx) => (
