@@ -161,15 +161,16 @@ const FloatingChessPieces = () => {
           ref={(el) => (elementsRef.current[index] = el)}
           src={piece.src}
           alt="Chess Piece"
-          className="absolute will-change-transform"
+          className="absolute"
           style={{
             width: piece.size,
             height: piece.size,
             opacity: piece.opacity,
             top: 0,
             left: 0,
-            // Convert any SVG colors to flat white silhouette
-            filter: 'brightness(0) invert(1) drop-shadow(0 0 2px rgba(255,255,255,0.2))'
+            // Use WebKit prefixed filter and remove drop-shadow which causes Safari to cull the layer
+            WebkitFilter: 'brightness(0) invert(1)',
+            filter: 'brightness(0) invert(1)'
           }}
         />
       ))}
