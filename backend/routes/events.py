@@ -107,6 +107,33 @@ def get_events():
             conn.close()
 
 
+@events_bp.route('/api/events/my-registrations', methods=['GET'])
+@jwt_required()
+def get_my_registrations():
+    email = (get_jwt_identity() or '').strip()
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            # Query user ID from users
+            cur.execute("SELECT id FROM users WHERE LOWER(email) = LOWER(%s)", (email,))
+            user = cur.fetchone()
+            if not user:
+                return jsonify([]), 200
+
+            # Fetch all event IDs the user registered for
+            cur.execute("SELECT event_id FROM event_registrations WHERE user_id = %s", (user[0],))
+            rows = cur.fetchall()
+            registered_ids = [row[0] for row in rows]
+            return jsonify(registered_ids), 200
+    except Exception as e:
+        print(f"Error fetching user registrations: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
 @events_bp.route('/api/events/<int:event_id>/registrations', methods=['POST'])
 @jwt_required()
 def register_for_event(event_id):
@@ -145,6 +172,7 @@ def register_for_event(event_id):
                 return jsonify({"error": "Complete your profile before registering."}), 400
 
             try:
+                # 1. Insert into general event_registrations table
                 cur.execute(
                     """
                     INSERT INTO event_registrations
@@ -153,6 +181,24 @@ def register_for_event(event_id):
                     """,
                     (event_id, user[0], user[1], user[2], user[3], user[4], remarks),
                 )
+                
+                # 2. If this is the Fresher's Chess League (event ID 8), also sync to legacy "fclEntries" table
+                if event_id == 8:
+                    cur.execute("SELECT chess_username, secondary_email FROM users WHERE id = %s", (user[0],))
+                    extra = cur.fetchone()
+                    chess_username = extra[0] if extra else ""
+                    secondary_email = extra[1] if extra else ""
+                    
+                    cur.execute("SELECT 1 FROM \"fclEntries\" WHERE LOWER(email) = LOWER(%s)", (user[1],))
+                    if not cur.fetchone():
+                        cur.execute(
+                            """
+                            INSERT INTO "fclEntries"
+                                (email, name, roll_no, chess_username, contact, secondary_email)
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                            """,
+                            (user[1], user[2], user[3], chess_username, user[4], secondary_email)
+                        )
             except Exception as error:
                 if getattr(error, 'sqlstate', None) == '23505':
                     return jsonify({"error": "You are already registered for this event."}), 409

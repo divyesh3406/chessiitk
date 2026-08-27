@@ -290,7 +290,6 @@ const MainLayout = ({ children }) => {
                 >
                   Close
                 </button>
-                {/*
                 {isLoggedIn ? (
                   isRegisteredForLol && isLolEvent ? (
                     <button
@@ -301,8 +300,8 @@ const MainLayout = ({ children }) => {
                     </button>
                   ) : (
                     <Link
-                      to={isLolEvent ? "/events" : `/events/register/${nextEvent.id}`}
-                      state={isLolEvent ? { openRegisterLol: true } : undefined}
+                      to="/events"
+                      state={isLolEvent ? { scrollToEventId: nextEvent.id, openRegisterLol: true } : { scrollToEventId: nextEvent.id, openRegisterForEventId: nextEvent.id }}
                       onClick={() => setIsModalOpen(false)}
                       className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
                     >
@@ -311,14 +310,13 @@ const MainLayout = ({ children }) => {
                   )
                 ) : (
                   <Link
-                    to="/login"
+                    to={`/login?redirect=/events&openRegisterForEventId=${nextEvent.id}`}
                     onClick={() => setIsModalOpen(false)}
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
                   >
                     Login to Register
                   </Link>
                 )}
-                */}
               </div>
             </div>
           </motion.div>

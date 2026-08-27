@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Lenis from 'lenis';
 import fresherImg from '../assets/fresher_league_recap_1775765383248.png';
 import grandSwissImg from '../assets/grand_swiss_recap_1775765397656.png';
@@ -70,6 +70,7 @@ const AnimatedCounter = ({ value, duration = 1200, trigger }) => {
 
 const Landing = () => {
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
   const [nextEvent, setNextEvent] = useState(null);
   const [triggerStats, setTriggerStats] = useState(false);
   const [activeSection, setActiveSection] = useState(0);

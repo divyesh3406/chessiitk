@@ -1,6 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import { globalCache } from '../utils/cache';
 import Footer from '../components/Footer';
@@ -15,12 +16,80 @@ const Events = () => {
   const [highlightedId, setHighlightedId] = useState(null);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-   const [activeTab, setActiveTab] = useState(() => {
+  const [myRegistrations, setMyRegistrations] = useState([]);
+  
+  // Registration Modal States
+  const [registeringEvent, setRegisteringEvent] = useState(null);
+  const [profileData, setProfileData] = useState(null);
+  const [isSubmittingReg, setIsSubmittingReg] = useState(false);
+  const [regError, setRegError] = useState('');
+
+  const [activeTab, setActiveTab] = useState(() => {
     return sessionStorage.getItem('events_active_tab') || 'upcoming';
   });
   const [selectedYear, setSelectedYear] = useState(() => {
     return sessionStorage.getItem('events_selected_year') || '26-27 Tenure';
   });
+
+  useEffect(() => {
+    if (!token) {
+      setMyRegistrations([]);
+      return;
+    }
+    const fetchMyRegistrations = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/events/my-registrations`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const registeredIds = await response.json();
+          setMyRegistrations(registeredIds);
+        }
+      } catch (err) {
+        console.error("Error fetching my registrations:", err);
+      }
+    };
+    fetchMyRegistrations();
+  }, [token]);
+
+  // Fetch verified profile details for pre-filling modal fields
+  useEffect(() => {
+    const email = localStorage.getItem('logged_in_user_email');
+    if (!token || !email) {
+      setProfileData(null);
+      return;
+    }
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/user/profile/${encodeURIComponent(email)}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setProfileData(data);
+        }
+      } catch (err) {
+        console.error("Error pre-fetching profile:", err);
+      }
+    };
+    fetchProfile();
+  }, [token]);
+
+  // Auto-open modal logic from Spotlight / Announcement redirect triggers
+  useEffect(() => {
+    if (events.length > 0 && location.state?.openRegisterForEventId) {
+      const targetIdStr = String(location.state.openRegisterForEventId);
+      const cleanTargetId = targetIdStr.startsWith('db-') ? targetIdStr : `db-${targetIdStr}`;
+      const foundEvent = events.find(e => String(e.id) === cleanTargetId);
+      if (foundEvent) {
+        setExpandedId(cleanTargetId);
+        setRegisteringEvent(foundEvent);
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [events, location.state]);
 
   const navType = useNavigationType();
 
@@ -213,6 +282,50 @@ const Events = () => {
       setLolRegError("Server connection error.");
     } finally {
       setIsSubmittingLol(false);
+    }
+  };
+
+  const handleConfirmRegistration = async () => {
+    if (!registeringEvent) return;
+    setIsSubmittingReg(true);
+    setRegError('');
+    try {
+      const eventId = String(registeringEvent.id).replace('db-', '');
+      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/registrations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ remarks: '' })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Registration failed.');
+
+      // Trigger confetti
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#f2ca50', '#d4af37', '#ffffff', '#1c1b1b'] 
+      });
+
+      // Add to local registered event IDs
+      const cleanId = Number(eventId);
+      setMyRegistrations(prev => {
+        if (!prev.includes(cleanId)) {
+          return [...prev, cleanId];
+        }
+        return prev;
+      });
+
+      // Close modal
+      setRegisteringEvent(null);
+      alert("RSVP Confirmed successfully!");
+    } catch (err) {
+      setRegError(err.message);
+    } finally {
+      setIsSubmittingReg(false);
     }
   };
 
@@ -629,6 +742,37 @@ const Events = () => {
                               REGISTER
                             </a>
                           );
+                        } else {
+                          const cleanEventId = Number(String(event.id).replace('db-', ''));
+                          const isRegistered = myRegistrations.includes(cleanEventId);
+                          if (!isLoggedIn) {
+                            registrationButton = (
+                              <Link 
+                                to="/login"
+                                className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
+                              >
+                                LOGIN TO REGISTER
+                              </Link>
+                            );
+                          } else if (isRegistered) {
+                            registrationButton = (
+                              <button
+                                disabled
+                                className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
+                              >
+                                REGISTERED ✓
+                              </button>
+                            );
+                          } else {
+                            registrationButton = (
+                              <button 
+                                onClick={() => setRegisteringEvent(event)}
+                                className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10 cursor-pointer"
+                              >
+                                REGISTER
+                              </button>
+                            );
+                          }
                         }
                       }
 
@@ -687,7 +831,36 @@ const Events = () => {
                       );
                     }
 
-                    return null;
+                    const cleanEventId = Number(String(event.id).replace('db-', ''));
+                    const isRegistered = myRegistrations.includes(cleanEventId);
+                    if (!isLoggedIn) {
+                      return (
+                        <Link 
+                          to="/login"
+                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
+                        >
+                          LOGIN TO REGISTER
+                        </Link>
+                      );
+                    } else if (isRegistered) {
+                      return (
+                        <button
+                          disabled
+                          className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
+                        >
+                          REGISTERED ✓
+                        </button>
+                      );
+                    } else {
+                      return (
+                        <button 
+                          onClick={() => setRegisteringEvent(event)}
+                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10 cursor-pointer"
+                        >
+                          REGISTER
+                        </button>
+                      );
+                    }
                   })()}
                 </div>
               </div>
@@ -857,6 +1030,93 @@ const Events = () => {
       </div>
 
       <Footer />
+
+      {/* Central Confirm Registration Modal */}
+      <AnimatePresence>
+        {registeringEvent && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-[#1c1b1b] border border-outline-variant/20 rounded-2xl w-full max-w-lg p-6 sm:p-8 relative shadow-2xl space-y-6"
+            >
+              <div className="flex justify-between items-center pb-4 border-b border-outline-variant/10">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary font-mono">Confirm Event Registration</span>
+                  <h3 className="text-xl font-serif text-on-surface mt-1">{registeringEvent.title}</h3>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => { setRegisteringEvent(null); setRegError(''); }} 
+                  className="p-1.5 hover:bg-surface-container-highest rounded-full text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-lg">close</span>
+                </button>
+              </div>
+
+              <div className="space-y-4 text-gray-200">
+                <p className="text-[10px] text-primary/80 font-bold uppercase tracking-wider font-mono">
+                  ⚠️ Please verify your profile details. Registration data cannot be modified later.
+                </p>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name</label>
+                    <input readOnly value={profileData?.name || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Roll Number</label>
+                      <input readOnly value={profileData?.rollno || profileData?.roll_no || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Chess.com ID</label>
+                      <input readOnly value={profileData?.chesscom || 'Not Configured'} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">IITK Email Address</label>
+                    <input readOnly value={profileData?.email || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Contact Number</label>
+                    <input readOnly value={profileData?.contact || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              {regError && (
+                <div className="text-red-400 text-xs bg-red-950/30 border border-red-900/50 p-3 rounded-lg">
+                  {regError}
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => { setRegisteringEvent(null); setRegError(''); }} 
+                  disabled={isSubmittingReg}
+                  className="flex-1 py-3 px-4 border border-outline-variant/20 hover:border-outline-variant text-on-surface-variant hover:text-on-surface text-xs font-bold font-label uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button" 
+                  onClick={handleConfirmRegistration}
+                  disabled={isSubmittingReg}
+                  className="flex-1 py-3 px-4 bg-gradient-to-r from-[#f2ca50] to-[#d4af37] hover:from-[#d4af37] hover:to-[#b8962f] text-[#3c2f00] text-xs font-bold font-label uppercase tracking-widest rounded-xl shadow-lg hover:shadow-[#f2ca50]/10 transition-all cursor-pointer"
+                >
+                  {isSubmittingReg ? "Confirming..." : "Confirm"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* LoL Registration Modal */}
       {isLolModalOpen && (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import { getRecaptchaToken } from '../utils/recaptcha';
@@ -13,12 +13,19 @@ const Login = () => {
   
   const { login, isLoggedIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate('/'); 
+      const redirectTo = searchParams.get('redirect') || '/';
+      const openRegisterForEventId = searchParams.get('openRegisterForEventId');
+      if (openRegisterForEventId) {
+        navigate(redirectTo, { state: { openRegisterForEventId } });
+      } else {
+        navigate(redirectTo);
+      }
     }
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, navigate, searchParams]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -59,7 +66,13 @@ const Login = () => {
         // 4. Log in and redirect
         login(theToken); 
 
-        navigate('/'); 
+        const redirectTo = searchParams.get('redirect') || '/';
+        const openRegisterForEventId = searchParams.get('openRegisterForEventId');
+        if (openRegisterForEventId) {
+          navigate(redirectTo, { state: { openRegisterForEventId } });
+        } else {
+          navigate(redirectTo);
+        }
       }
     } catch (err) {
       console.error("Login Error:", err);
