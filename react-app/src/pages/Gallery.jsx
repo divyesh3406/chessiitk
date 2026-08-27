@@ -979,7 +979,7 @@ const Gallery = () => {
       <header className="mb-8 md:mb-10 pt-4 sm:pt-6 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/10 pb-8">
         <div className="max-w-3xl">
           <h1 className="text-4xl font-serif leading-tight text-on-surface sm:text-5xl">
-            Gallery
+            House of Memories
           </h1>
           <p className="mt-3 text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base">
             Photos from our matches, workshops, and meetups.
