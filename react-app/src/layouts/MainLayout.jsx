@@ -7,6 +7,31 @@ import Navbar from '../components/Navbar';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import { API_BASE_URL } from '../config';
 
+const formatEventDateTime = (dateString, timeString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString; 
+
+  // Format ONLY the date part to Indian Standard Time
+  const formattedDate = date.toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  // Check if time is explicitly TBA, TBD, or missing entirely
+  const isTBA = !timeString || ['TBA', 'TBD'].includes(timeString.trim().toUpperCase());
+  
+  if (isTBA) {
+    return `${formattedDate} • Time: TBA`;
+  }
+
+  // If a specific time (e.g., "6:00 PM") is provided in the database
+  return `${formattedDate} • ${timeString} IST`;
+};
+
 const MainLayout = ({ children }) => {
   const { isLoggedIn, token } = useAuth();
   const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -112,7 +137,7 @@ const MainLayout = ({ children }) => {
                 {nextEvent.title}
               </span>
               <span className="text-[10px] text-on-surface-variant font-medium font-mono mt-0.5 leading-none">
-                {nextEvent.date}
+                {formatEventDateTime(nextEvent.date, nextEvent.time)}
               </span>
             </div>
             <span className="material-symbols-outlined text-primary text-base group-hover:translate-x-0.5 transition-transform shrink-0 ml-1">

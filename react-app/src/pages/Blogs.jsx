@@ -155,43 +155,81 @@ const Blogs = () => {
     return `${y.toString().padStart(2, '0')}-${yNext.toString().padStart(2, '0')} Tenure`;
   };
 
+  // const getImageUrl = (url) => {
+  //   if (!url) return defaultBlogHero;
+  //   if (typeof url !== 'string') return url;
+  //   if (url.startsWith('/static/')) {
+  //     return `${API_BASE_URL}${url}`;
+  //   }
+  //   return url;
+  // };
+
   const getImageUrl = (url) => {
-    if (!url) return defaultBlogHero;
-    if (typeof url !== 'string') return url;
-    if (url.startsWith('/static/')) {
-      return `${API_BASE_URL}${url}`;
-    }
+  if (!url) return defaultBlogHero;
+  if (typeof url !== 'string') return url;
+  
+  // Return base64 data URLs or absolute URLs directly
+  if (url.startsWith('data:image/') || url.startsWith('http://') || url.startsWith('https://')) {
     return url;
+  }
+  
+  if (url.startsWith('/static/')) {
+    return `${API_BASE_URL}${url}`;
+  }
+  return url;
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  // const handleImageUpload = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
+  //   const formData = new FormData();
+  //   formData.append('image', file);
 
-    try {
-      setError("");
-      const response = await fetch(`${API_BASE_URL}/api/upload`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
-      });
+  //   try {
+  //     setError("");
+  //     const response = await fetch(`${API_BASE_URL}/api/upload`, {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Bearer ${token}`
+  //       },
+  //       body: formData
+  //     });
 
-      if (!response.ok) {
-        throw new Error("Upload failed");
-      }
+  //     if (!response.ok) {
+  //       throw new Error("Upload failed");
+  //     }
 
-      const data = await response.json();
-      setNewCover(data.image_url);
-    } catch (err) {
-      console.error(err);
-      alert("Error uploading image to server.");
-    }
+  //     const data = await response.json();
+  //     setNewCover(data.image_url);
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Error uploading image to server.");
+  //   }
+  // };
+
+  const handleImageUpload = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Recommended: Prevent extremely large files from bloating your database
+  const MAX_SIZE_MB = 4;
+  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+    alert(`File is too large. Please select an image smaller than ${MAX_SIZE_MB}MB.`);
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    // reader.result is the complete base64 string (data:image/jpeg;base64,...)
+    setNewCover(reader.result);
   };
+  reader.onerror = () => {
+    alert("Error converting image to Base64.");
+  };
+
+  reader.readAsDataURL(file);
+};
 
   const fetchAllPosts = async () => {
     try {
