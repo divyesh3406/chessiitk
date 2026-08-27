@@ -3,7 +3,7 @@ import re
 import secrets
 import smtplib
 from email.mime.text import MIMEText
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 import bcrypt
 import psycopg
 from psycopg.rows import dict_row
@@ -60,23 +60,60 @@ def is_valid_password(password):
 # --- HELPER FUNCTIONS ---
 
 def send_custom_email(receiver_email, subject, body):
-    """Generic helper function to handle securely emailing IITK students via SMTP"""
-    sender_email = os.environ.get("EMAIL_SENDER")
-    sender_password = os.environ.get("EMAIL_PASSWORD")
+    """Generic helper function to handle securely emailing IITK students via SMTP with failover rotation"""
+    senders = []
     
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = sender_email
-    msg['To'] = receiver_email
+    # 1. Primary Chess Club credentials
+    primary_email = os.environ.get("EMAIL_SENDER")
+    primary_pwd = os.environ.get("EMAIL_PASSWORD")
+    if primary_email and primary_pwd:
+        senders.append((primary_email, primary_pwd))
+        
+    # 2. Backup credentials (up to 4 backup mail accounts)
+    for i in range(1, 5):
+        b_email = os.environ.get(f"EMAIL_SENDER_BACKUP_{i}") or os.environ.get(f"EMAIL_SENDER_{i}")
+        b_pwd = os.environ.get(f"EMAIL_PASSWORD_BACKUP_{i}") or os.environ.get(f"EMAIL_PASSWORD_{i}")
+        if b_email and b_pwd:
+            senders.append((b_email, b_pwd))
+            
+    # Fallback default if absolutely no sender environment variables are populated
+    if not senders:
+        senders.append(("chessclubiitk.auth@gmail.com", "ceennbqbhorccezd"))
 
+    is_debug = False
     try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
+        is_debug = current_app.debug
+    except Exception:
+        pass
+
+    last_error = None
+    for sender_email, sender_password in senders:
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+        try:
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            print(f"Email successfully dispatched to {receiver_email} using {sender_email}")
+            return True
+        except Exception as e:
+            last_error = e
+            print(f"Email Dispatch Failure using {sender_email}: {e}. Retrying with next backup...")
+
+    # Log to terminal in development if all SMTP servers failed
+    if is_debug:
+        print("\n" + "="*80)
+        print(f"[DEVELOPMENT MODE] ALL EMAILS FAILED. Fallback details:")
+        print(f"[DEVELOPMENT MODE] Email to: {receiver_email}")
+        print(f"[DEVELOPMENT MODE] Subject: {subject}")
+        print(f"[DEVELOPMENT MODE] Body:\n{body}")
+        print("="*80 + "\n")
         return True
-    except Exception as e:
-        print(f"Email Dispatch Failure: {e}")
-        return False
+
+    print(f"CRITICAL: All OTP senders failed. Last error: {last_error}")
+    return False
 
 
 # --- SIGNUP / OTP ROUTES ---
@@ -113,7 +150,7 @@ def generate_otp():
         with rate_connection.cursor() as cursor:
             client_address = get_client_address(request)
             recipient_allowed = consume_rate_limit(cursor, "signup-secondary", secondary_email, 3, 3600)
-            ip_allowed = consume_rate_limit(cursor, "signup-ip", client_address, 10, 3600)
+            ip_allowed = consume_rate_limit(cursor, "signup-ip", client_address, 200, 3600)
             rate_connection.commit()
             if not recipient_allowed or not ip_allowed:
                 return jsonify({"error": "Too many verification requests. Please try again later."}), 429

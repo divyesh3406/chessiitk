@@ -127,15 +127,11 @@ const Results = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-center border-collapse">
                 <thead>
                   <tr className="bg-surface-container/40 border-b border-outline-variant/10 text-[10px] font-mono font-bold uppercase tracking-wider text-on-surface-variant/80">
-                    <th className="py-4 px-6 text-center w-20">Rank</th>
-                    <th className="py-4 px-6">Name</th>
-                    <th className="py-4 px-6 w-40">Roll Number</th>
-                    <th className="py-4 px-6 text-center w-28">Score</th>
-                    <th className="py-4 px-6 text-center w-28">BH (TB1)</th>
-                    <th className="py-4 px-6 text-center w-28">SB (TB2)</th>
+                    <th className="py-4 px-6 text-center w-28">Rank</th>
+                    <th className="py-4 px-6 text-center">Name</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant/5">
@@ -158,20 +154,8 @@ const Results = () => {
                             <span className="text-sm font-mono text-on-surface-variant/80">{row.rank}</span>
                           )}
                         </td>
-                        <td className="py-4 px-6 text-sm font-semibold text-on-surface">
+                        <td className="py-4 px-6 text-center text-base font-semibold text-on-surface tracking-wide">
                           {row.name}
-                        </td>
-                        <td className="py-4 px-6 text-sm font-mono text-on-surface-variant/80">
-                          {row.roll_no || '-'}
-                        </td>
-                        <td className="py-4 px-6 text-center text-sm font-bold text-primary">
-                          {row.score}
-                        </td>
-                        <td className="py-4 px-6 text-center text-sm font-mono text-on-surface-variant/70">
-                          {row.tb1 || '-'}
-                        </td>
-                        <td className="py-4 px-6 text-center text-sm font-mono text-on-surface-variant/70">
-                          {row.tb2 || '-'}
                         </td>
                       </tr>
                     );

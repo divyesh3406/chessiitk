@@ -284,7 +284,7 @@ return (
         <div className="mb-8 md:mb-10">
           <div className="max-w-3xl">
             <h2 className="text-4xl font-serif leading-tight text-on-surface sm:text-5xl">
-Upcoming Events
+What's on the Board
             </h2>
             <p className="mt-3 text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base">
               Stay up to date with the IITK Chess Community's upcoming tournaments, workshops, and events.
