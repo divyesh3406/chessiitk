@@ -147,8 +147,8 @@ const SECRETARIES = [
     funnyDescription: `"My opening preparation lasts longer than my actual games."`,
     image: arushImg,
     email: "arushj25@iitk.ac.in",
-    instagram: "https://www.instagram.com/arush_jain/",
-    linkedin: "https://www.linkedin.com/in/arush-jain/"
+    instagram: "https://www.instagram.com/arushj876/",
+    linkedin: "https://www.linkedin.com/in/arush-jain-0b34a0325/"
   },
   {
     id: "sec-6",
