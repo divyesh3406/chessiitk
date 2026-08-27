@@ -146,7 +146,7 @@ const SECRETARIES = [
     role: "Secretary",
     funnyDescription: `"My opening preparation lasts longer than my actual games."`,
     image: arushImg,
-    email: "arushj24@iitk.ac.in",
+    email: "arushj25@iitk.ac.in",
     instagram: "https://www.instagram.com/arush_jain/",
     linkedin: "https://www.linkedin.com/in/arush-jain/"
   },
@@ -186,9 +186,9 @@ const SECRETARIES = [
     role: "Secretary",
     funnyDescription: `"In my defence, the knight jumped out of nowhere."`,
     image: dipinImg,
-    email: "dipinp24@iitk.ac.in",
-    instagram: "https://www.instagram.com/dipin_pandey/",
-    linkedin: "https://www.linkedin.com/in/dipin-pandey/"
+    email: "dipinpandey25@iitk.ac.in",
+    instagram: "https://www.instagram.com/dipinpandey_?igsi=MXc0ZXNwcTRhdGk0Mg%3D%3D&utm_source=qr",
+    linkedin: "https://www.linkedin.com/in/dipin-pandey-332936340?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
   },
   {
     id: "sec-10",
