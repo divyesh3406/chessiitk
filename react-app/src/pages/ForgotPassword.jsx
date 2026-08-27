@@ -1,13 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { getRecaptchaToken } from '../utils/recaptcha';
 
 const ForgotPassword = () => {
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState(() => Number(localStorage.getItem('forgot_step')) || 1);
+  const [email, setEmail] = useState(() => localStorage.getItem('forgot_email') || '');
   const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [newPassword, setNewPassword] = useState(() => localStorage.getItem('forgot_newPassword') || '');
   
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -15,6 +15,13 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
+
+  // Sync state to localStorage to prevent losing details on mobile reload
+  useEffect(() => {
+    localStorage.setItem('forgot_step', step);
+    localStorage.setItem('forgot_email', email);
+    localStorage.setItem('forgot_newPassword', newPassword);
+  }, [step, email, newPassword]);
 
   const handleSendResetCode = async (e) => {
     e.preventDefault();
@@ -68,6 +75,12 @@ const ForgotPassword = () => {
         setError(data.error || 'Failed to reset password');
       } else {
         setSuccess('Password reset successfully! Redirecting to login...');
+        
+        // Clear cached forgot password details
+        localStorage.removeItem('forgot_step');
+        localStorage.removeItem('forgot_email');
+        localStorage.removeItem('forgot_newPassword');
+
         setTimeout(() => {
           navigate('/login');
         }, 2000);
