@@ -35,8 +35,12 @@ self.addEventListener('activate', (event) => {
 
 // Fetch handler: Network First, falling back to cache for static resources
 self.addEventListener('fetch', (event) => {
-  // Only intercept GET requests, and skip API endpoints so dynamic requests run live
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/')) {
+  // Only intercept GET requests, and skip API endpoints / uploads so dynamic requests run live
+  if (
+    event.request.method !== 'GET' || 
+    event.request.url.includes('/api/') || 
+    event.request.url.includes('/static/uploads/')
+  ) {
     return;
   }
 
