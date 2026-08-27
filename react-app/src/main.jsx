@@ -37,18 +37,4 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-// Automatically unregister PWA Service Worker to prevent caching issues
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then((registrations) => {
-    for (let registration of registrations) {
-      registration.unregister()
-        .then(success => {
-          if (success) {
-            console.log('Service Worker unregistered successfully.');
-            // Force clean reload once to clear any remaining cache mappings
-            window.location.reload();
-          }
-        });
-    }
-  });
-}
+
