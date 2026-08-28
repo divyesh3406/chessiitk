@@ -179,57 +179,41 @@ const Blogs = () => {
   return url;
   };
 
-  // const handleImageUpload = async (e) => {
-  //   const file = e.target.files[0];
-  //   if (!file) return;
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  //   const formData = new FormData();
-  //   formData.append('image', file);
+    // Prevent extremely large files from clogging server storage
+    const MAX_SIZE_MB = 10;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      alert(`File is too large. Please select an image smaller than ${MAX_SIZE_MB}MB.`);
+      return;
+    }
 
-  //   try {
-  //     setError("");
-  //     const response = await fetch(`${API_BASE_URL}/api/upload`, {
-  //       method: 'POST',
-  //       headers: {
-  //         Authorization: `Bearer ${token}`
-  //       },
-  //       body: formData
-  //     });
+    const formData = new FormData();
+    formData.append('image', file);
 
-  //     if (!response.ok) {
-  //       throw new Error("Upload failed");
-  //     }
+    try {
+      setError("");
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
 
-  //     const data = await response.json();
-  //     setNewCover(data.image_url);
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Error uploading image to server.");
-  //   }
-  // };
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
 
-  const handleImageUpload = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  // Recommended: Prevent extremely large files from bloating your database
-  const MAX_SIZE_MB = 4;
-  if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-    alert(`File is too large. Please select an image smaller than ${MAX_SIZE_MB}MB.`);
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    // reader.result is the complete base64 string (data:image/jpeg;base64,...)
-    setNewCover(reader.result);
+      const data = await response.json();
+      setNewCover(data.image_url);
+    } catch (err) {
+      console.error(err);
+      alert("Error uploading image to server.");
+    }
   };
-  reader.onerror = () => {
-    alert("Error converting image to Base64.");
-  };
-
-  reader.readAsDataURL(file);
-};
 
   const fetchAllPosts = async () => {
     try {
