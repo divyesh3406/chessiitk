@@ -1,30 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { getRecaptchaToken } from '../utils/recaptcha';
 
 const Signup = () => {
-  const [mode, setMode] = useState(() => localStorage.getItem('signup_mode') || 'student'); // 'student' or 'alumni'
-  const [step, setStep] = useState(() => Number(localStorage.getItem('signup_step')) || 1); // Tracks which form to show
+  const [mode, setMode] = useState('student'); // 'student' or 'alumni'
+  const [step, setStep] = useState(1); // Tracks which form to show
   
   // Form Data (Student)
-  const [email, setEmail] = useState(() => localStorage.getItem('signup_email') || '');
-  const [secondaryEmail, setSecondaryEmail] = useState(() => localStorage.getItem('signup_secondaryEmail') || '');
-  const [chessUsername, setChessUsername] = useState(() => localStorage.getItem('signup_chessUsername') || '');
-  const [password, setPassword] = useState(() => localStorage.getItem('signup_password') || '');
+  const [email, setEmail] = useState('');
+  const [secondaryEmail, setSecondaryEmail] = useState('');
+  const [chessUsername, setChessUsername] = useState('');
+  const [password, setPassword] = useState('');
   
   const [primaryOtp, setPrimaryOtp] = useState('');
   const [secondaryOtp, setSecondaryOtp] = useState('');
 
   // Profile Fields (Shared)
-  const [name, setName] = useState(() => localStorage.getItem('signup_name') || '');
-  const [rollNo, setRollNo] = useState(() => localStorage.getItem('signup_rollNo') || '');
-  const [contact, setContact] = useState(() => localStorage.getItem('signup_contact') || '');
-  const [gender, setGender] = useState(() => localStorage.getItem('signup_gender') || '');
+  const [name, setName] = useState('');
+  const [rollNo, setRollNo] = useState('');
+  const [contact, setContact] = useState('');
+  const [gender, setGender] = useState('');
 
   // Alumni Specific Fields
-  const [alumniGradYear, setAlumniGradYear] = useState(() => localStorage.getItem('signup_alumniGradYear') || '');
-  const [alumniNotes, setAlumniNotes] = useState(() => localStorage.getItem('signup_alumniNotes') || '');
+  const [alumniGradYear, setAlumniGradYear] = useState('');
+  const [alumniNotes, setAlumniNotes] = useState('');
   const [alumniSubmitted, setAlumniSubmitted] = useState(false);
   
   // UI States
@@ -34,22 +34,6 @@ const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
-
-  // Sync state to localStorage to prevent losing details on mobile reload
-  useEffect(() => {
-    localStorage.setItem('signup_mode', mode);
-    localStorage.setItem('signup_step', step);
-    localStorage.setItem('signup_email', email);
-    localStorage.setItem('signup_secondaryEmail', secondaryEmail);
-    localStorage.setItem('signup_chessUsername', chessUsername);
-    localStorage.setItem('signup_password', password);
-    localStorage.setItem('signup_name', name);
-    localStorage.setItem('signup_rollNo', rollNo);
-    localStorage.setItem('signup_contact', contact);
-    localStorage.setItem('signup_gender', gender);
-    localStorage.setItem('signup_alumniGradYear', alumniGradYear);
-    localStorage.setItem('signup_alumniNotes', alumniNotes);
-  }, [mode, step, email, secondaryEmail, chessUsername, password, name, rollNo, contact, gender, alumniGradYear, alumniNotes]);
 
   // --- STEP 1: Send the OTP (Student) ---
   const handleSendDualOtp = async (e) => {
@@ -176,21 +160,6 @@ const Signup = () => {
         setError(data.error || 'Verification failed');
       } else {
         setSuccess('Account created successfully! Redirecting to login...');
-        
-        // Clear cached signup details
-        localStorage.removeItem('signup_mode');
-        localStorage.removeItem('signup_step');
-        localStorage.removeItem('signup_email');
-        localStorage.removeItem('signup_secondaryEmail');
-        localStorage.removeItem('signup_chessUsername');
-        localStorage.removeItem('signup_password');
-        localStorage.removeItem('signup_name');
-        localStorage.removeItem('signup_rollNo');
-        localStorage.removeItem('signup_contact');
-        localStorage.removeItem('signup_gender');
-        localStorage.removeItem('signup_alumniGradYear');
-        localStorage.removeItem('signup_alumniNotes');
-
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -256,20 +225,6 @@ const Signup = () => {
       } else {
         setAlumniSubmitted(true);
         setSuccess('Your details have been recorded and administrators have been notified!');
-        
-        // Clear cached signup details
-        localStorage.removeItem('signup_mode');
-        localStorage.removeItem('signup_step');
-        localStorage.removeItem('signup_email');
-        localStorage.removeItem('signup_secondaryEmail');
-        localStorage.removeItem('signup_chessUsername');
-        localStorage.removeItem('signup_password');
-        localStorage.removeItem('signup_name');
-        localStorage.removeItem('signup_rollNo');
-        localStorage.removeItem('signup_contact');
-        localStorage.removeItem('signup_gender');
-        localStorage.removeItem('signup_alumniGradYear');
-        localStorage.removeItem('signup_alumniNotes');
       }
     } catch (err) {
       console.error("Alumni Request Error:", err);
@@ -642,7 +597,8 @@ const Signup = () => {
           <form className="mt-8 space-y-6" onSubmit={handleVerifyAndRegister}>
             <div className="space-y-5 rounded-md shadow-sm">
               <p className="text-center text-xs text-on-surface-variant mb-4 leading-relaxed">
-                We sent two different 6-digit verification codes to both your primary IITK email and recovery email.
+                We sent two different 6-digit verification codes to both your primary IITK email and recovery email.<br />
+                <span className="text-primary mt-1 block">Please check the spam section if you do not find the OTP in your inbox.</span>
               </p>
               {/* Primary Email OTP field */}
               <div>
