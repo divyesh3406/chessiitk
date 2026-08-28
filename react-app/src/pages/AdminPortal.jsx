@@ -37,6 +37,12 @@ const AdminPortal = () => {
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
+  // Sorting States
+  const [regSortField, setRegSortField] = useState('created_at');
+  const [regSortDirection, setRegSortDirection] = useState('desc');
+  const [userSortField, setUserSortField] = useState('created_at');
+  const [userSortDirection, setUserSortDirection] = useState('desc');
+
   // --- 1. OVERVIEW & LOGS ---
   const fetchOverviewData = async () => {
     setLoadingStats(true);
@@ -376,6 +382,94 @@ const AdminPortal = () => {
     );
   });
 
+  const handleRegSort = (field) => {
+    if (regSortField === field) {
+      setRegSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setRegSortField(field);
+      setRegSortDirection(field === 'created_at' ? 'desc' : 'asc');
+    }
+  };
+
+  const handleUserSort = (field) => {
+    if (userSortField === field) {
+      setUserSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setUserSortField(field);
+      setUserSortDirection(field === 'created_at' ? 'desc' : 'asc');
+    }
+  };
+
+  // Helper to extract the 2-digit entry year from roll numbers
+  const getRollYear = (roll) => {
+    const cleanRoll = String(roll || '').trim();
+    return /^\d{2}/.test(cleanRoll) ? parseInt(cleanRoll.slice(0, 2), 10) : null;
+  };
+
+  const sortedRegistrations = [...registrations].sort((a, b) => {
+    let valA, valB;
+    if (regSortField === 'name') {
+      valA = (a.name || '').toLowerCase();
+      valB = (b.name || '').toLowerCase();
+    } else if (regSortField === 'roll_no') {
+      const yearA = getRollYear(a.roll_no);
+      const yearB = getRollYear(b.roll_no);
+      if (yearA === null && yearB !== null) return 1;
+      if (yearA !== null && yearB === null) return -1;
+      if (yearA === null && yearB === null) return 0;
+      
+      if (yearA !== yearB) {
+        return regSortDirection === 'asc' ? yearA - yearB : yearB - yearA;
+      }
+      
+      // If same year, sort numerically within the year
+      const cleanA = String(a.roll_no || '').replace(/\D/g, '');
+      const cleanB = String(b.roll_no || '').replace(/\D/g, '');
+      const numA = cleanA ? parseInt(cleanA, 10) : 0;
+      const numB = cleanB ? parseInt(cleanB, 10) : 0;
+      return regSortDirection === 'asc' ? numA - numB : numB - numA;
+    } else { // 'created_at'
+      valA = new Date(a.created_at || 0).getTime();
+      valB = new Date(b.created_at || 0).getTime();
+    }
+
+    if (valA < valB) return regSortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return regSortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    let valA, valB;
+    if (userSortField === 'name') {
+      valA = (a.name || '').toLowerCase();
+      valB = (b.name || '').toLowerCase();
+    } else if (userSortField === 'roll_no') {
+      const yearA = getRollYear(a.roll_no);
+      const yearB = getRollYear(b.roll_no);
+      if (yearA === null && yearB !== null) return 1;
+      if (yearA !== null && yearB === null) return -1;
+      if (yearA === null && yearB === null) return 0;
+
+      if (yearA !== yearB) {
+        return userSortDirection === 'asc' ? yearA - yearB : yearB - yearA;
+      }
+
+      // If same year, sort numerically within the year
+      const cleanA = String(a.roll_no || '').replace(/\D/g, '');
+      const cleanB = String(b.roll_no || '').replace(/\D/g, '');
+      const numA = cleanA ? parseInt(cleanA, 10) : 0;
+      const numB = cleanB ? parseInt(cleanB, 10) : 0;
+      return userSortDirection === 'asc' ? numA - numB : numB - numA;
+    } else { // 'created_at'
+      valA = new Date(a.created_at || 0).getTime();
+      valB = new Date(b.created_at || 0).getTime();
+    }
+
+    if (valA < valB) return userSortDirection === 'asc' ? -1 : 1;
+    if (valA > valB) return userSortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   return (
     <div className="min-h-screen text-on-surface pt-4 sm:pt-6 font-sans relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 relative">
@@ -640,17 +734,53 @@ const AdminPortal = () => {
                   <table className="min-w-full divide-y divide-outline-variant/10 text-left text-xs">
                     <thead className="bg-[#151515] text-zinc-400 uppercase font-mono text-[10px] tracking-wider font-bold">
                       <tr>
-                        <th className="px-6 py-4">Participant</th>
-                        <th className="px-6 py-4">Roll Number</th>
+                        <th 
+                          onClick={() => handleRegSort('name')}
+                          className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>Participant</span>
+                            {regSortField === 'name' ? (
+                              <span className="material-symbols-outlined text-[14px] text-primary">{regSortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-zinc-600 opacity-0 hover:opacity-100 transition-opacity">unfold_more</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          onClick={() => handleRegSort('roll_no')}
+                          className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>Roll Number</span>
+                            {regSortField === 'roll_no' ? (
+                              <span className="material-symbols-outlined text-[14px] text-primary">{regSortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-zinc-600 opacity-0 hover:opacity-100 transition-opacity">unfold_more</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="px-6 py-4">Chess.com Username</th>
                         <th className="px-6 py-4">Contact</th>
                         <th className="px-6 py-4">Secondary Email</th>
-                        <th className="px-6 py-4">Timestamp</th>
+                        <th 
+                          onClick={() => handleRegSort('created_at')}
+                          className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>Timestamp</span>
+                            {regSortField === 'created_at' ? (
+                              <span className="material-symbols-outlined text-[14px] text-primary">{regSortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-zinc-600 opacity-0 hover:opacity-100 transition-opacity">unfold_more</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="px-6 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/5 text-zinc-300">
-                      {registrations.map((reg) => (
+                      {sortedRegistrations.map((reg) => (
                         <tr key={reg.id} className="hover:bg-surface-container-high/40 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-white">{reg.name}</div>
@@ -841,18 +971,54 @@ const AdminPortal = () => {
                   <table className="min-w-full divide-y divide-outline-variant/10 text-left text-xs">
                     <thead className="bg-[#151515] text-zinc-400 uppercase font-mono text-[10px] tracking-wider font-bold">
                       <tr>
-                        <th className="px-6 py-4">User</th>
-                        <th className="px-6 py-4">Roll Number</th>
+                        <th 
+                          onClick={() => handleUserSort('name')}
+                          className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>User</span>
+                            {userSortField === 'name' ? (
+                              <span className="material-symbols-outlined text-[14px] text-primary">{userSortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-zinc-600 opacity-0 hover:opacity-100 transition-opacity">unfold_more</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          onClick={() => handleUserSort('roll_no')}
+                          className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>Roll Number</span>
+                            {userSortField === 'roll_no' ? (
+                              <span className="material-symbols-outlined text-[14px] text-primary">{userSortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-zinc-600 opacity-0 hover:opacity-100 transition-opacity">unfold_more</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="px-6 py-4">Chess.com Username</th>
                         <th className="px-6 py-4">Contact</th>
                         <th className="px-6 py-4">Gender</th>
                         <th className="px-6 py-4">Admin Status</th>
-                        <th className="px-6 py-4">Joined At</th>
+                        <th 
+                          onClick={() => handleUserSort('created_at')}
+                          className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span>Joined At</span>
+                            {userSortField === 'created_at' ? (
+                              <span className="material-symbols-outlined text-[14px] text-primary">{userSortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'}</span>
+                            ) : (
+                              <span className="material-symbols-outlined text-[14px] text-zinc-600 opacity-0 hover:opacity-100 transition-opacity">unfold_more</span>
+                            )}
+                          </div>
+                        </th>
                         <th className="px-6 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/5 text-zinc-300">
-                      {filteredUsers.map((u) => (
+                      {sortedUsers.map((u) => (
                         <tr key={u.id} className="hover:bg-surface-container-high/40 transition-colors">
                           <td className="px-6 py-4">
                             <div className="font-semibold text-white">{u.name}</div>
