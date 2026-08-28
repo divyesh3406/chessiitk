@@ -734,6 +734,7 @@ const AdminPortal = () => {
                   <table className="min-w-full divide-y divide-outline-variant/10 text-left text-xs">
                     <thead className="bg-[#151515] text-zinc-400 uppercase font-mono text-[10px] tracking-wider font-bold">
                       <tr>
+                        <th className="px-6 py-4 font-mono text-[10px] w-12 text-zinc-500">S.No.</th>
                         <th 
                           onClick={() => handleRegSort('name')}
                           className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
@@ -780,8 +781,9 @@ const AdminPortal = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/5 text-zinc-300">
-                      {sortedRegistrations.map((reg) => (
+                      {sortedRegistrations.map((reg, index) => (
                         <tr key={reg.id} className="hover:bg-surface-container-high/40 transition-colors">
+                          <td className="px-6 py-4 font-mono text-zinc-500 w-12">{index + 1}</td>
                           <td className="px-6 py-4">
                             <div className="font-semibold text-white">{reg.name}</div>
                             <div className="text-zinc-500 text-[11px] font-mono">{reg.email}</div>
@@ -971,6 +973,7 @@ const AdminPortal = () => {
                   <table className="min-w-full divide-y divide-outline-variant/10 text-left text-xs">
                     <thead className="bg-[#151515] text-zinc-400 uppercase font-mono text-[10px] tracking-wider font-bold">
                       <tr>
+                        <th className="px-6 py-4 font-mono text-[10px] w-12 text-zinc-500">S.No.</th>
                         <th 
                           onClick={() => handleUserSort('name')}
                           className="px-6 py-4 cursor-pointer hover:text-white transition-colors select-none"
@@ -1018,8 +1021,9 @@ const AdminPortal = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/5 text-zinc-300">
-                      {sortedUsers.map((u) => (
+                      {sortedUsers.map((u, index) => (
                         <tr key={u.id} className="hover:bg-surface-container-high/40 transition-colors">
+                          <td className="px-6 py-4 font-mono text-zinc-500 w-12">{index + 1}</td>
                           <td className="px-6 py-4">
                             <div className="font-semibold text-white">{u.name}</div>
                             <div className="text-zinc-500 text-[11px] font-mono">{u.email}</div>
@@ -1038,7 +1042,7 @@ const AdminPortal = () => {
                             )}
                           </td>
                           <td className="px-6 py-4 font-mono text-zinc-500">
-                            {new Date(u.created_at).toLocaleDateString()}
+                            {new Date(u.created_at).toLocaleString()}
                           </td>
                           <td className="px-6 py-4 text-right">
                             <button
