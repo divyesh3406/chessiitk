@@ -407,3 +407,91 @@ def update_standings(event_id):
     finally:
         if conn:
             conn.close()
+
+
+# --- DELETE EVENT REGISTRATION ---
+@admin_bp.route('/api/admin/registrations/<event_name>/<int:record_id>', methods=['DELETE'])
+@jwt_required()
+def delete_registration(event_name, record_id):
+    if not verify_admin_privileges():
+        return jsonify({"error": "Admin access required."}), 403
+
+    if event_name not in ('lol', 'fcl'):
+        return jsonify({"error": "Invalid event selection."}), 400
+
+    table_name = "lolEntries" if event_name == 'lol' else "fclEntries"
+    admin_email = get_jwt_identity()
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            # Check if record exists
+            cur.execute(f'SELECT email, name FROM "{table_name}" WHERE id = %s', (record_id,))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({"error": "Registration record not found."}), 404
+            
+            email, name = row
+
+            # Delete the record
+            cur.execute(f'DELETE FROM "{table_name}" WHERE id = %s', (record_id,))
+            conn.commit()
+
+            # Log action
+            log_admin_action(
+                admin_email,
+                f"DELETE_{event_name.upper()}_REGISTRATION",
+                f"Deleted {event_name.upper()} registration ID {record_id} for user {name} ({email})."
+            )
+
+            return jsonify({"message": "Registration record deleted successfully."}), 200
+    except Exception as e:
+        print(f"Delete Registration Error: {e}")
+        return jsonify({"error": "Internal server error."}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+# --- DELETE REGISTERED USER ---
+@admin_bp.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    if not verify_admin_privileges():
+        return jsonify({"error": "Admin access required."}), 403
+
+    admin_email = get_jwt_identity()
+    conn = None
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cur:
+            # Check if user exists
+            cur.execute("SELECT email, name FROM users WHERE id = %s", (user_id,))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({"error": "User not found."}), 404
+            
+            email, name = row
+
+            # Prevent deletion of self for safety
+            if email.lower() == admin_email.lower():
+                return jsonify({"error": "You cannot delete your own admin account."}), 400
+
+            # Delete user
+            cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            conn.commit()
+
+            # Log action
+            log_admin_action(
+                admin_email,
+                "DELETE_USER",
+                f"Deleted user account ID {user_id} for {name} ({email})."
+            )
+
+            return jsonify({"message": "User account deleted successfully."}), 200
+    except Exception as e:
+        print(f"Delete User Error: {e}")
+        return jsonify({"error": "Internal server error."}), 500
+    finally:
+        if conn:
+            conn.close()

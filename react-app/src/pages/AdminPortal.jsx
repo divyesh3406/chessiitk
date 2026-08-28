@@ -322,6 +322,50 @@ const AdminPortal = () => {
     }
   }, [activeTab]);
 
+  const handleDeleteRegistration = async (id, name, email) => {
+    if (!window.confirm(`Are you sure you want to delete registration for ${name} (${email})? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/registrations/${selectedRegEvent}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("Registration deleted successfully.");
+        fetchRegistrations();
+      } else {
+        alert(data.error || "Deletion failed.");
+      }
+    } catch (e) {
+      console.error("Error deleting registration:", e);
+      alert("Error contacting the server.");
+    }
+  };
+
+  const handleDeleteUser = async (id, name, email) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user account for ${name} (${email})?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("User account deleted successfully.");
+        fetchUsers();
+      } else {
+        alert(data.error || "Deletion failed.");
+      }
+    } catch (e) {
+      console.error("Error deleting user:", e);
+      alert("Error contacting the server.");
+    }
+  };
+
   const filteredUsers = users.filter(u => {
     const query = userSearchQuery.toLowerCase();
     return (
@@ -602,6 +646,7 @@ const AdminPortal = () => {
                         <th className="px-6 py-4">Contact</th>
                         <th className="px-6 py-4">Secondary Email</th>
                         <th className="px-6 py-4">Timestamp</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/5 text-zinc-300">
@@ -617,6 +662,15 @@ const AdminPortal = () => {
                           <td className="px-6 py-4 text-zinc-400">{reg.secondary_email || 'None'}</td>
                           <td className="px-6 py-4 font-mono text-zinc-500">
                             {new Date(reg.created_at).toLocaleString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleDeleteRegistration(reg.id, reg.name, reg.email)}
+                              className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                              title="Delete Entry"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -794,6 +848,7 @@ const AdminPortal = () => {
                         <th className="px-6 py-4">Gender</th>
                         <th className="px-6 py-4">Admin Status</th>
                         <th className="px-6 py-4">Joined At</th>
+                        <th className="px-6 py-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/5 text-zinc-300">
@@ -818,6 +873,15 @@ const AdminPortal = () => {
                           </td>
                           <td className="px-6 py-4 font-mono text-zinc-500">
                             {new Date(u.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            <button
+                              onClick={() => handleDeleteUser(u.id, u.name, u.email)}
+                              className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                              title="Delete User Account"
+                            >
+                              <span className="material-symbols-outlined text-sm">delete</span>
+                            </button>
                           </td>
                         </tr>
                       ))}
