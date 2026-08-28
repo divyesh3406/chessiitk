@@ -1,6 +1,5 @@
 # ChessClubIITK
 
-
 # Setting up the backend deployment
 
 1) Go to your Vercel deployment project, then Environment variables. Add `VITE_API_URL` and `VITE_RECAPTCHA_SITE_KEY`. The latter must be the site key for a Google reCAPTCHA v3 property that includes the production and preview hostnames.
@@ -11,6 +10,8 @@
 
 Note 2: I formatted the code a lot during backend deployment. The below instructions for local testing may or may not work as I might have hardcoded a few variables.
 
+---
+
 # ♟️ Chess Club IITK - Developer Setup Guide for local testing
 
 Welcome to the Sanctum! This guide will get your local development environment set up so you can safely write code and connect to our live cloud database without needing any passwords, JSON keys, or IP whitelisting.
@@ -20,9 +21,11 @@ Before you start, make sure you have the following installed on your machine:
 * **Python 3.9+**
 * **Node.js & npm**
 * **Google Cloud CLI:** [Install it here](https://cloud.google.com/sdk/docs/install)
-* **Cloud SQL Auth Proxy:** * **Mac (Homebrew):** Run `brew install cloud-sql-proxy`
-  * **Mac (Direct Download if Brew fails):** ```bash
-    curl -o cloud-sql-proxy [https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.22.1/cloud-sql-proxy.darwin.arm64](https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.22.1/cloud-sql-proxy.darwin.arm64)
+* **Cloud SQL Auth Proxy:**
+  * **Mac (Homebrew):** Run `brew install cloud-sql-proxy`
+  * **Mac (Direct Download if Brew fails):**
+    ```bash
+    curl -o cloud-sql-proxy https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.22.1/cloud-sql-proxy.darwin.arm64
     chmod +x cloud-sql-proxy
     ```
   * **Windows:** [Download the .exe here](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy).
@@ -33,12 +36,14 @@ Before you start, make sure you have the following installed on your machine:
 
 ### Step 1: Clone the Repository
 ```bash
-git clone [https://github.com/YOUR_TEAM_REPO/ChessClubIITK.git](https://github.com/YOUR_TEAM_REPO/ChessClubIITK.git)
+git clone https://github.com/YOUR_TEAM_REPO/ChessClubIITK.git
 cd ChessClubIITK
-Step 2: Setup the Python Backend
-Open a terminal in the backend folder and set up your virtual environment:
+```
 
-Bash
+### Step 2: Setup the Python Backend
+Open a terminal in the `backend` folder and set up your virtual environment:
+
+```bash
 cd backend
 python3 -m venv venv
 
@@ -48,9 +53,11 @@ source venv/bin/activate
 # venv\Scripts\activate
 
 pip install -r requirements.txt
-Create a .env file inside the backend folder and add these lines:
+```
 
-Code snippet
+Create a `.env` file inside the `backend` folder and add these lines:
+
+```env
 # Database (Connects to your local proxy tunnel)
 DB_HOST="127.0.0.1"
 DB_PORT="3306"
@@ -64,44 +71,104 @@ EMAIL_PASSWORD="<ASK_SIDDHANT_FOR_APP_PASSWORD>"
 JWT_SECRET="<ASK_SIDDHANT/DIVYESH>"
 JWT_ACCESS_TOKEN_HOURS="12"
 MEDIA_STORAGE_BACKEND="local"
-Step 3: Setup the React Frontend
-Open a new terminal tab in the react-app folder:
+```
 
-Bash
+### Step 3: Setup the React Frontend
+Open a new terminal tab in the `react-app` folder:
+
+```bash
 cd react-app
 npm install
-🔐 The Magic Database Tunnel
+```
+
+---
+
+## 🔐 The Magic Database Tunnel
 We use Google's zero-key authentication. Instead of dealing with IP whitelists on the IITK Wi-Fi, you will log in through your browser to open a secure tunnel straight to the cloud database.
 
-1. Log into Google Cloud
+### 1. Log into Google Cloud
 Run this in your terminal and log in with your authorized Google Account (ensure Siddhant has added this email to the IAM access list):
 
-Bash
+```bash
 gcloud auth application-default login
-2. Open the Tunnel
+```
+
+### 2. Open the Tunnel
 Keep a terminal window open in the background and run the proxy command:
 
-Bash
+```bash
 # If installed via Homebrew or Windows .exe:
 cloud-sql-proxy backend-499903:asia-south2:chessiitk-mysql-delhi-01
 
 # If downloaded directly to your folder via curl:
 ./cloud-sql-proxy backend-499903:asia-south2:chessiitk-mysql-delhi-01
-(If the terminal says Ready for new connections, you are successfully connected to the cloud database! Leave this running.)
+```
+*(If the terminal says "Ready for new connections", you are successfully connected to the cloud database! Leave this running.)*
 
-🏃‍♂️ Running the App Daily
+---
+
+## 🏃‍♂️ Running the App Daily
 Whenever you sit down to code, you need three terminal tabs running:
 
-The Proxy Tunnel: (See step above)
+1. **The Proxy Tunnel**: (See step above)
+2. **The Backend**:
+   ```bash
+   cd backend
+   source venv/bin/activate
+   python app.py
+   ```
+3. **The Frontend**:
+   ```bash
+   cd react-app
+   npm run dev
+   ```
+Open `http://localhost:5173` in your browser, and you're ready to build!
 
-The Backend: ```bash
-cd backend
-source venv/bin/activate
-python app.py
+---
 
-The Frontend:
+## 🛠️ Production VM Deployment Guide
 
-Bash
+Teammates can deploy updates to the live production server VM on Google Cloud Platform by following this workflow:
+
+### 1. Push changes to GitHub
+Once you have tested your code locally, run a test compilation on the frontend and push your commits to the main repository branch:
+```bash
+# Verify build passes
 cd react-app
-npm run dev
-Open http://localhost:5173 in your browser, and you're ready to build!
+npm run build
+
+# Push to origin main
+git add .
+git commit -m "Your descriptive commit message"
+git push origin main
+```
+
+### 2. SSH into the GCP Server VM
+* Go to the **Google Cloud Console** -> **Compute Engine** -> **VM instances**.
+* Locate the instance **`prod-web`**.
+* Click the **SSH** button next to it (or use your local gcloud SDK shell: `gcloud compute ssh prod-web --project=backend-499903 --zone=asia-south2-a`).
+
+### 3. Pull updates and Rebuild Docker Compose
+Inside the VM terminal, run these commands to update and deploy the containers:
+
+```bash
+# 1. Switch to root privileges
+sudo su
+
+# 2. Go to the project repository
+cd /home/ineshaggarwal24/chessiitk
+
+# 3. Stash any local VM configurations (protects server configs)
+git stash
+
+# 4. Pull the latest commits from GitHub
+git pull origin main
+
+# 5. Restore the stashed server configs
+git stash pop
+
+# 6. Stop and rebuild the Docker container services
+docker compose down
+docker compose up -d --build
+```
+*(Once Docker finishes building and shows "started", your changes are live on `chessclubiitk.in`!)*
