@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { getRecaptchaToken } from '../utils/recaptcha';
 
 const ForgotPassword = () => {
-  const [step, setStep] = useState(() => Number(localStorage.getItem('forgot_step')) || 1);
-  const [email, setEmail] = useState(() => localStorage.getItem('forgot_email') || '');
+  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [newPassword, setNewPassword] = useState(() => localStorage.getItem('forgot_newPassword') || '');
+  const [newPassword, setNewPassword] = useState('');
   
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -15,13 +15,6 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
-
-  // Sync state to localStorage to prevent losing details on mobile reload
-  useEffect(() => {
-    localStorage.setItem('forgot_step', step);
-    localStorage.setItem('forgot_email', email);
-    localStorage.setItem('forgot_newPassword', newPassword);
-  }, [step, email, newPassword]);
 
   const handleSendResetCode = async (e) => {
     e.preventDefault();
@@ -75,12 +68,6 @@ const ForgotPassword = () => {
         setError(data.error || 'Failed to reset password');
       } else {
         setSuccess('Password reset successfully! Redirecting to login...');
-        
-        // Clear cached forgot password details
-        localStorage.removeItem('forgot_step');
-        localStorage.removeItem('forgot_email');
-        localStorage.removeItem('forgot_newPassword');
-
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -147,6 +134,10 @@ const ForgotPassword = () => {
 
         {step === 2 && (
           <form className="mt-8 space-y-6" onSubmit={handleResetPassword}>
+            <p className="text-center text-xs text-on-surface-variant mb-4 leading-relaxed">
+              We sent a 6-digit verification code to your email.<br />
+              <span className="text-primary mt-1 block">Please check the spam section if you do not find the OTP in your inbox.</span>
+            </p>
             <div className="space-y-5 rounded-md shadow-sm">
               <div>
                 <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-[0.2em] mb-2 ml-1">6-Digit Code</label>
