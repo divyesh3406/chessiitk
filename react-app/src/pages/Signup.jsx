@@ -118,7 +118,7 @@ const Signup = () => {
       if (!response.ok) {
         setError(data.error || 'Failed to send OTP');
       } else {
-        setSuccess('Verification code sent to your IITK email!');
+        setSuccess('Verification codes sent to both your primary and secondary emails!');
         setStep(2); // Move to the OTP screen
       }
     } catch (err) {

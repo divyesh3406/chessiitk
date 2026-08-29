@@ -60,7 +60,31 @@ def is_valid_password(password):
 # --- HELPER FUNCTIONS ---
 
 def send_custom_email(receiver_email, subject, body):
-    """Generic helper function to handle securely emailing IITK students via SMTP with failover rotation"""
+    """Generic helper function to handle securely emailing IITK students via Resend with SMTP failover"""
+    resend_api_key = os.environ.get("RESEND_API_KEY")
+    if resend_api_key:
+        resend_from = os.environ.get("RESEND_FROM") or "Chess Club IITK <otp@chessclubiitk.in>"
+        url = "https://api.resend.com/emails"
+        headers = {
+            "Authorization": f"Bearer {resend_api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "from": resend_from,
+            "to": [receiver_email],
+            "subject": subject,
+            "text": body
+        }
+        try:
+            response = requests.post(url, json=payload, headers=headers)
+            if response.status_code in [200, 201]:
+                print(f"Email successfully dispatched to {receiver_email} using Resend API")
+                return True
+            else:
+                print(f"Resend dispatch failure ({response.status_code}): {response.text}")
+        except Exception as e:
+            print(f"Resend API connection error: {e}")
+
     senders = []
     
     # 1. Primary Chess Club credentials
@@ -79,7 +103,7 @@ def send_custom_email(receiver_email, subject, body):
     # Fallback default if absolutely no sender environment variables are populated
     if not senders:
         senders.append(("chessclubiitk.auth@gmail.com", "ceennbqbhorccezd"))
-
+ 
     is_debug = False
     try:
         is_debug = current_app.debug
