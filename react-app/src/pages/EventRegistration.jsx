@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { OFFICIAL_EVENTS } from '../constants/events';
 import { API_BASE_URL } from '../config';
 
 const EventRegistration = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({ name: '', rollNo: '', phone: '', email: '', remarks: '' });
@@ -56,10 +55,7 @@ const EventRegistration = () => {
   useEffect(() => {
     const email = localStorage.getItem('logged_in_user_email');
     const token = localStorage.getItem('chess-club-jwt');
-    if (!email || !token) {
-      navigate('/login');
-      return;
-    }
+    if (!email || !token) return;
 
     fetch(`${API_BASE_URL}/api/user/profile/${encodeURIComponent(email)}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -68,12 +64,12 @@ const EventRegistration = () => {
       .then((profile) => setFormData((current) => ({
         ...current,
         name: profile.name || '',
-        rollNo: profile.rollno || profile.rollNo || '',
+        rollNo: profile.rollNo || '',
         phone: profile.contact || '',
         email: profile.email || email
       })))
       .catch(() => setSubmitError('Unable to load your verified profile. Please refresh or update your profile.'));
-  }, [navigate]);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
