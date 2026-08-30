@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { OFFICIAL_EVENTS } from '../constants/events';
 import { API_BASE_URL } from '../config';
 
 const EventRegistration = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({ name: '', rollNo: '', phone: '', email: '', chesscom: '', remarks: '' });
+  const [formData, setFormData] = useState({ name: '', rollNo: '', phone: '', email: '', remarks: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -55,7 +56,10 @@ const EventRegistration = () => {
   useEffect(() => {
     const email = localStorage.getItem('logged_in_user_email');
     const token = localStorage.getItem('chess-club-jwt');
-    if (!email || !token) return;
+    if (!email || !token) {
+      navigate('/login');
+      return;
+    }
 
     fetch(`${API_BASE_URL}/api/user/profile/${encodeURIComponent(email)}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -64,13 +68,12 @@ const EventRegistration = () => {
       .then((profile) => setFormData((current) => ({
         ...current,
         name: profile.name || '',
-        rollNo: profile.rollNo || '',
+        rollNo: profile.rollno || profile.rollNo || '',
         phone: profile.contact || '',
-        email: profile.email || email,
-        chesscom: profile.chesscom || ''
+        email: profile.email || email
       })))
       .catch(() => setSubmitError('Unable to load your verified profile. Please refresh or update your profile.'));
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -200,7 +203,8 @@ const EventRegistration = () => {
                   readOnly
                   placeholder="e.g. Inesh Aggarwal"
                   value={formData.name}
-                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface-variant focus:outline-none transition-colors"
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary transition-colors focus:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                 />
               </div>
 
@@ -212,7 +216,8 @@ const EventRegistration = () => {
                   readOnly
                   placeholder="e.g. 210123"
                   value={formData.rollNo}
-                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface-variant focus:outline-none transition-colors"
+                  onChange={(e) => setFormData({ ...formData, rollNo: e.target.value })}
+                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary transition-colors focus:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                 />
               </div>
 
@@ -224,40 +229,36 @@ const EventRegistration = () => {
                   readOnly
                   placeholder="e.g. member@iitk.ac.in"
                   value={formData.email}
-                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface-variant focus:outline-none transition-colors"
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary transition-colors focus:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1.5 focus-within:text-primary transition-colors">
+                  Contact Number
+                </label>
+                <input
+                  type="tel"
+                  required
+                  readOnly
+                  placeholder="e.g. 9876543210"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary transition-colors focus:shadow-[0_0_15px_rgba(212,175,55,0.1)]"
                 />
               </div>
             </div>
 
-            <div className="space-y-4 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1.5 focus-within:text-primary transition-colors">
-                    Contact Number
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    readOnly
-                    placeholder="e.g. 9876543210"
-                    value={formData.phone}
-                    className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface-variant focus:outline-none transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1.5 focus-within:text-primary transition-colors">
-                    Chess.com Username / ID
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    readOnly
-                    placeholder="Not Set (Configure in Profile)"
-                    value={formData.chesscom}
-                    className="w-full bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface-variant focus:outline-none transition-colors"
-                  />
-                </div>
+            <div className="space-y-4 flex flex-col h-full">
+              <div className="flex-1 flex flex-col">
+                <label className="block text-[10px] font-label uppercase tracking-widest text-on-surface-variant mb-1.5 focus-within:text-primary transition-colors">Tactical Remarks / Queries</label>
+                <textarea
+                  placeholder="Any specific questions for the organizers or dietary constraints?"
+                  value={formData.remarks}
+                  onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                  className="w-full flex-1 bg-[#131313] border border-[#4d4635]/30 rounded-lg px-4 py-3 text-sm text-on-surface focus:outline-none focus:border-primary transition-colors focus:shadow-[0_0_15px_rgba(212,175,55,0.1)] resize-none"
+                ></textarea>
               </div>
 
               <div className="pt-2">
