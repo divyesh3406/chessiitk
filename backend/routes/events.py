@@ -155,6 +155,9 @@ def register_for_event(event_id):
             if not event:
                 return jsonify({"error": "Event not found."}), 404
 
+            if event_id == 8:
+                return jsonify({"error": "Registration is closed for the Fresher's Chess League."}), 400
+
             from datetime import date
             closing_date = event[2] or event[1]
             if closing_date and closing_date < date.today():

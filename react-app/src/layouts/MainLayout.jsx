@@ -315,33 +315,55 @@ const MainLayout = ({ children }) => {
                 >
                   Close
                 </button>
-                {isLoggedIn ? (
-                  isRegisteredForLol && isLolEvent ? (
-                    <button
-                      disabled
-                      className="px-6 py-2.5 rounded-xl bg-gray-800 text-gray-500 text-xs font-bold uppercase tracking-wider border border-gray-700 cursor-not-allowed"
-                    >
-                      REGISTERED ✓
-                    </button>
-                  ) : (
-                    <Link
-                      to="/events"
-                      state={isLolEvent ? { scrollToEventId: nextEvent.id, openRegisterLol: true } : { scrollToEventId: nextEvent.id, openRegisterForEventId: nextEvent.id }}
-                      onClick={() => setIsModalOpen(false)}
-                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
-                    >
-                      Register Now
-                    </Link>
-                  )
-                ) : (
-                  <Link
-                    to={`/login?redirect=/events&openRegisterForEventId=${nextEvent.id}`}
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
-                  >
-                    Login to Register
-                  </Link>
-                )}
+                {(() => {
+                  const cleanId = Number(String(nextEvent.id).replace('db-', ''));
+                  const isFclClosed = cleanId === 8 || nextEvent.title.toLowerCase().includes("fresher");
+                  
+                  if (isFclClosed) {
+                    return (
+                      <button
+                        disabled
+                        className="px-6 py-2.5 rounded-xl bg-gray-800 text-gray-500 text-xs font-bold uppercase tracking-wider border border-gray-700 cursor-not-allowed"
+                      >
+                        REGISTRATION CLOSED
+                      </button>
+                    );
+                  }
+                  
+                  if (isLoggedIn) {
+                    if (isRegisteredForLol && isLolEvent) {
+                      return (
+                        <button
+                          disabled
+                          className="px-6 py-2.5 rounded-xl bg-gray-800 text-gray-500 text-xs font-bold uppercase tracking-wider border border-gray-700 cursor-not-allowed"
+                        >
+                          REGISTERED ✓
+                        </button>
+                      );
+                    } else {
+                      return (
+                        <Link
+                          to="/events"
+                          state={isLolEvent ? { scrollToEventId: nextEvent.id, openRegisterLol: true } : { scrollToEventId: nextEvent.id, openRegisterForEventId: nextEvent.id }}
+                          onClick={() => setIsModalOpen(false)}
+                          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
+                        >
+                          Register Now
+                        </Link>
+                      );
+                    }
+                  } else {
+                    return (
+                      <Link
+                        to={`/login?redirect=/events&openRegisterForEventId=${nextEvent.id}`}
+                        onClick={() => setIsModalOpen(false)}
+                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
+                      >
+                        Login to Register
+                      </Link>
+                    );
+                  }
+                })()}
               </div>
             </div>
           </motion.div>

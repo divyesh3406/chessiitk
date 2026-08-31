@@ -9,7 +9,7 @@ import { API_BASE_URL } from '../config';
 
 const Events = () => {
   // 1. Pull auth context and token for admin verification and API calls
-  const { isLoggedIn, token } = useAuth();
+  const { isLoggedIn, token, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedId, setExpandedId] = useState(null);
@@ -46,6 +46,9 @@ const Events = () => {
         if (response.ok) {
           const registeredIds = await response.json();
           setMyRegistrations(registeredIds);
+        } else if (response.status === 401) {
+          logout();
+          navigate('/login?redirect=/events');
         }
       } catch (err) {
         console.error("Error fetching my registrations:", err);
@@ -69,6 +72,9 @@ const Events = () => {
         if (response.ok) {
           const data = await response.json();
           setProfileData(data);
+        } else if (response.status === 401) {
+          logout();
+          navigate('/login?redirect=/events');
         }
       } catch (err) {
         console.error("Error pre-fetching profile:", err);
@@ -85,7 +91,10 @@ const Events = () => {
       const foundEvent = events.find(e => String(e.id) === cleanTargetId);
       if (foundEvent) {
         setExpandedId(cleanTargetId);
-        setRegisteringEvent(foundEvent);
+        const cleanId = Number(targetIdStr.replace('db-', ''));
+        if (cleanId !== 8) {
+          setRegisteringEvent(foundEvent);
+        }
         window.history.replaceState({}, document.title);
       }
     }
@@ -745,7 +754,17 @@ const Events = () => {
                         } else {
                           const cleanEventId = Number(String(event.id).replace('db-', ''));
                           const isRegistered = myRegistrations.includes(cleanEventId);
-                          if (!isLoggedIn) {
+                          const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
+                          if (isFcl) {
+                            registrationButton = (
+                              <button
+                                disabled
+                                className="block w-full text-center bg-surface-container-high text-on-surface-variant/40 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/10 text-xs font-label uppercase tracking-widest"
+                              >
+                                REGISTRATION CLOSED
+                              </button>
+                            );
+                          } else if (!isLoggedIn) {
                             registrationButton = (
                               <Link 
                                 to="/login"
@@ -833,6 +852,17 @@ const Events = () => {
 
                     const cleanEventId = Number(String(event.id).replace('db-', ''));
                     const isRegistered = myRegistrations.includes(cleanEventId);
+                    const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
+                    if (isFcl) {
+                      return (
+                        <button
+                          disabled
+                          className="block w-full text-center bg-surface-container-high text-on-surface-variant/40 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/10 text-xs font-label uppercase tracking-widest"
+                        >
+                          REGISTRATION CLOSED
+                        </button>
+                      );
+                    }
                     if (!isLoggedIn) {
                       return (
                         <Link 
@@ -1033,7 +1063,7 @@ const Events = () => {
 
       {/* Central Confirm Registration Modal */}
       <AnimatePresence>
-        {registeringEvent && (
+        {registeringEvent && Number(String(registeringEvent.id).replace('db-', '')) !== 8 && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}

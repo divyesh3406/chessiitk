@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import Footer from '../components/Footer';
 import { globalCache } from '../utils/cache';
 
 const AdminPortal = () => {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Stats & Logs States
@@ -53,6 +55,10 @@ const AdminPortal = () => {
       if (statsRes.ok) {
         const statsData = await statsRes.json();
         setStats(statsData);
+      } else if (statsRes.status === 401) {
+        logout();
+        navigate('/login?redirect=/admin');
+        return;
       }
 
       const logsRes = await fetch(`${API_BASE_URL}/api/admin/audit-logs`, {
@@ -61,6 +67,10 @@ const AdminPortal = () => {
       if (logsRes.ok) {
         const logsData = await logsRes.json();
         setLogs(logsData);
+      } else if (logsRes.status === 401) {
+        logout();
+        navigate('/login?redirect=/admin');
+        return;
       }
     } catch (e) {
       console.error("Error fetching admin overview:", e);
