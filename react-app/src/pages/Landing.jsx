@@ -245,9 +245,15 @@ const Landing = () => {
         });
         
         if (upcoming.length > 0) {
-          // Sort by date ascending
-          upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-          setNextEvent(upcoming[0]);
+          // Prioritize Fresher's Chess League for the homepage featured arena
+          const fclEvent = upcoming.find(evt => (evt.title || '').toLowerCase().includes('fresher') || (evt.title || '').toLowerCase().includes('fcl'));
+          if (fclEvent) {
+            setNextEvent(fclEvent);
+          } else {
+            const nonCandidates = upcoming.filter(evt => !(evt.title || '').toLowerCase().includes('candidate'));
+            nonCandidates.sort((a, b) => new Date(a.date) - new Date(b.date));
+            setNextEvent(nonCandidates.length > 0 ? nonCandidates[0] : upcoming[0]);
+          }
         }
       }
     };
@@ -256,7 +262,13 @@ const Landing = () => {
 
   // Helper to map event to image
   const getEventImage = (event) => {
-    return logoImg;
+    if (!event) return fresherImg;
+    if (event.image_url && (event.image_url.startsWith('http') || event.image_url.startsWith('/'))) return event.image_url;
+    const title = (event.title || '').toLowerCase();
+    if (title.includes('swiss')) return grandSwissImg;
+    if (title.includes('fide')) return fideImg;
+    if (title.includes('league of legends') || title.includes('lol')) return lolImg;
+    return fresherImg;
   };
 
   return (

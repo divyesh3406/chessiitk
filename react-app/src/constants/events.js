@@ -61,6 +61,25 @@ export const OFFICIAL_EVENTS = [
     ],
     prizes: "8 Gold Memberships for Winners + Mama Mio Coupons for Top 50!"
   },
+  {
+    id: 14,
+    title: "IITK Candidates 2026",
+    tag: "Tournament",
+    date: "August 23, 2026",
+    endDate: "September 4, 2026",
+    time: "Multiple Days",
+    location: "Campus / Online",
+    format: "Classical / Rapid",
+    shortDesc:
+      "The premier IITK Candidates Tournament running from 23rd August to 4th September 2026.",
+    fullDesc:
+      "The IITK Candidates Tournament features top players of IIT Kanpur competing for championship honors from August 23rd to September 4th, 2026.",
+    schedule: [
+      { time: "Aug 23rd", activity: "Opening Rounds" },
+      { time: "Sep 4th", activity: "Final Round & Closing" }
+    ],
+    prizes: "Championship Honors & IITK Candidates Title!"
+  },
   /*
   {
     id: 3,
