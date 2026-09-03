@@ -73,8 +73,15 @@ const MainLayout = ({ children }) => {
         });
         
         if (upcoming.length > 0) {
-          upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-          setNextEvent(upcoming[0]);
+          // Prioritize Fresher's Chess League for the main upcoming event modal/banner
+          const fclEvent = upcoming.find(evt => (evt.title || '').toLowerCase().includes('fresher') || (evt.title || '').toLowerCase().includes('fcl'));
+          if (fclEvent) {
+            setNextEvent(fclEvent);
+          } else {
+            const nonCandidates = upcoming.filter(evt => !(evt.title || '').toLowerCase().includes('candidate'));
+            nonCandidates.sort((a, b) => new Date(a.date) - new Date(b.date));
+            setNextEvent(nonCandidates.length > 0 ? nonCandidates[0] : upcoming[0]);
+          }
         }
       }
     };
