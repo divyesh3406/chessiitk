@@ -92,7 +92,7 @@ const Events = () => {
       if (foundEvent) {
         setExpandedId(cleanTargetId);
         const cleanId = Number(targetIdStr.replace('db-', ''));
-        const isNoReg = cleanId === 8 || foundEvent.title.toLowerCase().includes("fresher") || foundEvent.title.toLowerCase().includes("candidate");
+        const isNoReg = cleanId === 8 || foundEvent.title.toLowerCase().includes("fresher") || foundEvent.title.toLowerCase().includes("candidate") || foundEvent.title.toLowerCase().includes("fide");
         if (!isNoReg) {
           setRegisteringEvent(foundEvent);
         }
@@ -756,8 +756,9 @@ const Events = () => {
                           const cleanEventId = Number(String(event.id).replace('db-', ''));
                           const isRegistered = myRegistrations.includes(cleanEventId);
                           const isCandidates = event.title.toLowerCase().includes("candidate");
+                          const isFide = event.title.toLowerCase().includes("fide");
                           const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
-                          if (isCandidates) {
+                          if (isCandidates || isFide) {
                             registrationButton = null;
                           } else if (isFcl) {
                             registrationButton = (
@@ -857,8 +858,9 @@ const Events = () => {
                     const cleanEventId = Number(String(event.id).replace('db-', ''));
                     const isRegistered = myRegistrations.includes(cleanEventId);
                     const isCandidates = event.title.toLowerCase().includes("candidate");
+                    const isFide = event.title.toLowerCase().includes("fide");
                     const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
-                    if (isCandidates) {
+                    if (isCandidates || isFide) {
                       return null;
                     }
                     if (isFcl) {
@@ -1071,7 +1073,7 @@ const Events = () => {
 
       {/* Central Confirm Registration Modal */}
       <AnimatePresence>
-        {registeringEvent && Number(String(registeringEvent.id).replace('db-', '')) !== 8 && !registeringEvent.title.toLowerCase().includes("candidate") && (
+        {registeringEvent && Number(String(registeringEvent.id).replace('db-', '')) !== 8 && !registeringEvent.title.toLowerCase().includes("candidate") && !registeringEvent.title.toLowerCase().includes("fide") && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}

@@ -307,20 +307,13 @@ const MainLayout = ({ children }) => {
                 </Link>
               </div>
 
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold uppercase tracking-wider text-on-surface hover:bg-surface-container-highest transition-colors"
-                >
-                  Close
-                </button>
                 {(() => {
                   const cleanId = Number(String(nextEvent.id).replace('db-', ''));
                   const isFclClosed = cleanId === 8 || nextEvent.title.toLowerCase().includes("fresher");
                   const isCandidates = nextEvent.title.toLowerCase().includes("candidate");
+                  const isFide = nextEvent.title.toLowerCase().includes("fide");
                   
-                  if (isCandidates) {
+                  if (isCandidates || isFide) {
                     return null;
                   }
                   
@@ -369,7 +362,6 @@ const MainLayout = ({ children }) => {
                     );
                   }
                 })()}
-              </div>
             </div>
           </motion.div>
         </div>
