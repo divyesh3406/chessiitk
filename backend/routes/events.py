@@ -148,15 +148,19 @@ def register_for_event(event_id):
         conn = get_db_connection()
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, event_date, event_end_date FROM events WHERE id = %s FOR UPDATE",
+                "SELECT id, event_date, event_end_date, title FROM events WHERE id = %s FOR UPDATE",
                 (event_id,),
             )
             event = cur.fetchone()
             if not event:
                 return jsonify({"error": "Event not found."}), 404
 
-            if event_id == 8:
+            event_title = (event[3] or '').lower()
+            if event_id == 8 or 'fresher' in event_title:
                 return jsonify({"error": "Registration is closed for the Fresher's Chess League."}), 400
+
+            if 'candidate' in event_title:
+                return jsonify({"error": "Registration is not available for the Candidates event."}), 400
 
             from datetime import date
             closing_date = event[2] or event[1]

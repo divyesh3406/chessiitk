@@ -92,7 +92,8 @@ const Events = () => {
       if (foundEvent) {
         setExpandedId(cleanTargetId);
         const cleanId = Number(targetIdStr.replace('db-', ''));
-        if (cleanId !== 8) {
+        const isNoReg = cleanId === 8 || foundEvent.title.toLowerCase().includes("fresher") || foundEvent.title.toLowerCase().includes("candidate");
+        if (!isNoReg) {
           setRegisteringEvent(foundEvent);
         }
         window.history.replaceState({}, document.title);
@@ -754,8 +755,11 @@ const Events = () => {
                         } else {
                           const cleanEventId = Number(String(event.id).replace('db-', ''));
                           const isRegistered = myRegistrations.includes(cleanEventId);
+                          const isCandidates = event.title.toLowerCase().includes("candidate");
                           const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
-                          if (isFcl) {
+                          if (isCandidates) {
+                            registrationButton = null;
+                          } else if (isFcl) {
                             registrationButton = (
                               <button
                                 disabled
@@ -852,7 +856,11 @@ const Events = () => {
 
                     const cleanEventId = Number(String(event.id).replace('db-', ''));
                     const isRegistered = myRegistrations.includes(cleanEventId);
+                    const isCandidates = event.title.toLowerCase().includes("candidate");
                     const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
+                    if (isCandidates) {
+                      return null;
+                    }
                     if (isFcl) {
                       return (
                         <button
@@ -1063,7 +1071,7 @@ const Events = () => {
 
       {/* Central Confirm Registration Modal */}
       <AnimatePresence>
-        {registeringEvent && Number(String(registeringEvent.id).replace('db-', '')) !== 8 && (
+        {registeringEvent && Number(String(registeringEvent.id).replace('db-', '')) !== 8 && !registeringEvent.title.toLowerCase().includes("candidate") && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}

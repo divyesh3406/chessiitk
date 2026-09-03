@@ -318,6 +318,11 @@ const MainLayout = ({ children }) => {
                 {(() => {
                   const cleanId = Number(String(nextEvent.id).replace('db-', ''));
                   const isFclClosed = cleanId === 8 || nextEvent.title.toLowerCase().includes("fresher");
+                  const isCandidates = nextEvent.title.toLowerCase().includes("candidate");
+                  
+                  if (isCandidates) {
+                    return null;
+                  }
                   
                   if (isFclClosed) {
                     return (
