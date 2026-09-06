@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom';
 import { API_BASE_URL } from '../config';
 import { useAuth } from '../context/AuthContext'; 
 import { globalCache } from '../utils/cache';
-import DOMPurify from 'dompurify';
 import tournamentImg from '../assets/fide.png';
 import fresherImg from '../assets/fcl.png';
 import winnerImg from '../assets/anuj_shivratri.png';
@@ -49,7 +48,7 @@ const formatInjectedContent = (rawContent) => {
   }
 
   // Regex to match raw base64 images without data prefix
-  const formattedContent = content.replace(
+  return content.replace(
     /<img([^>]+)src=["'](?!\s*data:)([^"']+)["']/g,
     (match, attributes, src) => {
       if (src.startsWith('/9j/') || src.startsWith('iVBORw0KGgo')) {
@@ -58,12 +57,6 @@ const formatInjectedContent = (rawContent) => {
       return match;
     }
   );
-
-  return DOMPurify.sanitize(formattedContent, {
-    ALLOWED_TAGS: ['p', 'br', 'div', 'span', 'strong', 'em', 'b', 'i', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'a', 'img'],
-    ALLOWED_ATTR: ['class', 'href', 'src', 'alt', 'title', 'target', 'rel'],
-    ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|\/|data:image\/(?:png|jpe?g|gif|webp);base64,)/i,
-  });
 };
 
 const LEGACY_POSTS_MAP = {};
@@ -126,9 +119,11 @@ const BlogPost = () => {
 
   useEffect(() => {
     const fetchPostData = async () => {
-      // 1. Check legacy posts first if id is non-numerical slug
-      if (LEGACY_POSTS_MAP[id]) {
-        const leg = LEGACY_POSTS_MAP[id];
+      const targetId = (id === '16' || id === 'history') ? '23' : id;
+
+      // 1. Check legacy posts first if targetId is non-numerical slug
+      if (LEGACY_POSTS_MAP[targetId]) {
+        const leg = LEGACY_POSTS_MAP[targetId];
         setDbPost(leg);
         setEditTitle(leg.title);
         setEditSubtitle(leg.subtitle || leg.tag || "");
@@ -142,7 +137,7 @@ const BlogPost = () => {
 
       // 2. Fetch from single blog endpoint
       try {
-        const response = await fetch(`${API_BASE_URL}/api/blogs/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/blogs/${targetId}`);
         if (response.ok) {
           const matchingNode = await response.json();
           if (matchingNode && matchingNode.id) {
@@ -175,7 +170,10 @@ const BlogPost = () => {
         const response = await fetch(`${API_BASE_URL}/api/blogs`);
         if (response.ok) {
           const posts = await response.json();
-          const matchingNode = posts.find(p => String(p.id) === String(id));
+          let matchingNode = posts.find(p => String(p.id) === String(id));
+          if (!matchingNode && (id === 'history' || id === '16' || id === '23')) {
+            matchingNode = posts.find(p => p.title && p.title.includes("The Story of Chess Club IITK"));
+          }
           if (matchingNode) {
             setDbPost(matchingNode);
             setEditTitle(matchingNode.title || "");
@@ -217,10 +215,7 @@ const BlogPost = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/blogs/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           author_email: effectiveEmail,
           title: editTitle,
@@ -380,14 +375,14 @@ const BlogPost = () => {
             )}
           </div>
 
-          <div className="w-full max-h-[600px] rounded-xl overflow-hidden mb-16 relative shadow-2xl shadow-black/50 bg-[#0e0e0e] flex items-center justify-center">
+          <div className="w-full h-[320px] sm:h-[450px] rounded-xl overflow-hidden mb-16 relative shadow-2xl shadow-black/50 bg-black/20">
             <img 
               alt={dbPost.title} 
-              className="w-full h-auto max-h-[600px] object-contain" 
+              className="w-full h-full object-cover" 
               src={getImageUrl(dbPost.cover_image)}
               onError={(e) => { e.currentTarget.src = defaultBlogHero; }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent opacity-40 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent opacity-40 pointer-events-none"></div>
           </div>
 
           {/* Safely injects the LONGTEXT content string rendering paragraphs/embedded elements */}

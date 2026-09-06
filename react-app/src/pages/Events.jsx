@@ -1,7 +1,6 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { Link, useNavigate, useLocation, useNavigationType } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { globalCache } from '../utils/cache';
 import Footer from '../components/Footer';
@@ -9,128 +8,54 @@ import { API_BASE_URL } from '../config';
 
 const Events = () => {
   // 1. Pull auth context and token for admin verification and API calls
-  const { isLoggedIn, token, logout } = useAuth();
+  const { isLoggedIn, token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedId, setExpandedId] = useState(null);
   const [highlightedId, setHighlightedId] = useState(null);
   const [events, setEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [myRegistrations, setMyRegistrations] = useState([]);
-  
-  // Registration Modal States
-  const [registeringEvent, setRegisteringEvent] = useState(null);
-  const [profileData, setProfileData] = useState(null);
-  const [isSubmittingReg, setIsSubmittingReg] = useState(false);
-  const [regError, setRegError] = useState('');
-
   const [activeTab, setActiveTab] = useState(() => {
-    return sessionStorage.getItem('events_active_tab') || 'upcoming';
+    const isReload = window.performance && 
+      (window.performance.navigation?.type === 1 || 
+       (performance.getEntriesByType("navigation")[0] && performance.getEntriesByType("navigation")[0].type === 'reload'));
+    if (isReload) {
+      return localStorage.getItem('selectedEventTab') || 'upcoming';
+    }
+    return 'upcoming';
   });
+
   const [selectedYear, setSelectedYear] = useState(() => {
-    return sessionStorage.getItem('events_selected_year') || '26-27 Tenure';
+    const isReload = window.performance && 
+      (window.performance.navigation?.type === 1 || 
+       (performance.getEntriesByType("navigation")[0] && performance.getEntriesByType("navigation")[0].type === 'reload'));
+    if (isReload) {
+      return localStorage.getItem('selectedEventYear') || '26-27 Tenure';
+    }
+    return '26-27 Tenure';
   });
 
-  useEffect(() => {
-    if (!token) {
-      setMyRegistrations([]);
-      return;
-    }
-    const fetchMyRegistrations = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/events/my-registrations`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        if (response.ok) {
-          const registeredIds = await response.json();
-          setMyRegistrations(registeredIds);
-        } else if (response.status === 401) {
-          logout();
-          navigate('/login?redirect=/events');
-        }
-      } catch (err) {
-        console.error("Error fetching my registrations:", err);
-      }
-    };
-    fetchMyRegistrations();
-  }, [token]);
+  const prevKeyRef = useRef(location.key);
 
-  // Fetch verified profile details for pre-filling modal fields
   useEffect(() => {
-    const email = localStorage.getItem('logged_in_user_email');
-    if (!token || !email) {
-      setProfileData(null);
-      return;
-    }
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/user/profile/${encodeURIComponent(email)}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setProfileData(data);
-        } else if (response.status === 401) {
-          logout();
-          navigate('/login?redirect=/events');
-        }
-      } catch (err) {
-        console.error("Error pre-fetching profile:", err);
+    if (prevKeyRef.current !== location.key) {
+      prevKeyRef.current = location.key;
+      if (activeTab === 'past' && !location.state?.scrollToEventId) {
+        setActiveTab('upcoming');
       }
-    };
-    fetchProfile();
-  }, [token]);
-
-  // Auto-open modal logic from Spotlight / Announcement redirect triggers
-  useEffect(() => {
-    if (events.length > 0 && location.state?.openRegisterForEventId) {
-      const targetIdStr = String(location.state.openRegisterForEventId);
-      const cleanTargetId = targetIdStr.startsWith('db-') ? targetIdStr : `db-${targetIdStr}`;
-      const foundEvent = events.find(e => String(e.id) === cleanTargetId);
-      if (foundEvent) {
-        setExpandedId(cleanTargetId);
-        const cleanId = Number(targetIdStr.replace('db-', ''));
-        const isNoReg = cleanId === 8 || foundEvent.title.toLowerCase().includes("fresher") || foundEvent.title.toLowerCase().includes("candidate") || foundEvent.title.toLowerCase().includes("fide");
-        if (!isNoReg) {
-          setRegisteringEvent(foundEvent);
-        }
-        window.history.replaceState({}, document.title);
+      if (selectedYear !== '26-27 Tenure' && !location.state?.scrollToEventId) {
+        setSelectedYear('26-27 Tenure');
       }
     }
-  }, [events, location.state]);
+  }, [location, activeTab, selectedYear]);
 
-  const navType = useNavigationType();
-
-  // Track activeTab and selectedYear changes to persist them in sessionStorage
   useEffect(() => {
-    sessionStorage.setItem('events_active_tab', activeTab);
+    localStorage.setItem('selectedEventTab', activeTab);
   }, [activeTab]);
 
   useEffect(() => {
-    sessionStorage.setItem('events_selected_year', selectedYear);
+    localStorage.setItem('selectedEventYear', selectedYear);
   }, [selectedYear]);
-
-  // Reset tab and year when location changes (except when custom tab, specific event scroll is requested, or POP back navigation)
-  useLayoutEffect(() => {
-    if (location.state?.defaultTab) {
-      setActiveTab(location.state.defaultTab);
-      if (location.state.defaultTab === 'past') {
-        setSelectedYear('25-26 Tenure');
-      }
-    } else if (location.state?.scrollToEventId) {
-      // Let scrollToEventId hook handle activeTab/selectedYear transitions
-    } else if (navType === 'POP') {
-      const savedTab = sessionStorage.getItem('events_active_tab');
-      const savedYear = sessionStorage.getItem('events_selected_year');
-      if (savedTab) setActiveTab(savedTab);
-      if (savedYear) setSelectedYear(savedYear);
-    } else {
-      setActiveTab('upcoming');
-      setSelectedYear('26-27 Tenure');
-    }
-  }, [location, navType]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEventId, setEditingEventId] = useState(null);
@@ -156,6 +81,15 @@ const Events = () => {
   const [isSubmittingLol, setIsSubmittingLol] = useState(false);
   const [isFetchingLolProfile, setIsFetchingLolProfile] = useState(false);
 
+  // FCL Registration Custom States
+  const [isRegisteredForFcl, setIsRegisteredForFcl] = useState(false);
+  const [isFclModalOpen, setIsFclModalOpen] = useState(false);
+  const [fclProfileData, setFclProfileData] = useState(null);
+  const [fclRegError, setFclRegError] = useState('');
+  const [fclRegSuccess, setFclRegSuccess] = useState(false);
+  const [isSubmittingFcl, setIsSubmittingFcl] = useState(false);
+  const [isFetchingFclProfile, setIsFetchingFclProfile] = useState(false);
+
   // Check LoL registration status
   useEffect(() => {
     if (isLoggedIn && token) {
@@ -180,13 +114,58 @@ const Events = () => {
     }
   }, [isLoggedIn, token]);
 
+  // Check FCL registration status
+  useEffect(() => {
+    if (isLoggedIn && token) {
+      const checkFclStatus = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/register-fcl/status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setIsRegisteredForFcl(data.is_registered);
+          }
+        } catch (e) {
+          console.error("Error checking fcl registration status:", e);
+        }
+      };
+      checkFclStatus();
+    } else {
+      setIsRegisteredForFcl(false);
+    }
+  }, [isLoggedIn, token]);
+
   // Handle auto-opening registration modal from landing page announcement popup
   useEffect(() => {
     if (location.state?.openRegisterLol && isLoggedIn && token) {
+      setActiveTab('upcoming');
       handleRegisterLolClick();
-      window.history.replaceState({}, document.title);
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, isLoggedIn, token]);
+
+  // Handle auto-opening FCL registration modal
+  useEffect(() => {
+    if (location.state?.openRegisterFcl && isLoggedIn && token && events.length > 0) {
+      setActiveTab('upcoming');
+      const fclEvent = events.find(e => e.title.toLowerCase().includes("fresher"));
+      if (fclEvent) {
+        setExpandedId(fclEvent.id);
+        setHighlightedId(fclEvent.id);
+        setTimeout(() => {
+          const element = document.getElementById(fclEvent.id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      }
+      handleRegisterFclClick();
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, isLoggedIn, token, events]);
 
   // Handle auto-scroll and highlight when redirected from Calendar or other pages
   useEffect(() => {
@@ -223,7 +202,7 @@ const Events = () => {
         setHighlightedId(null);
       }, 2500);
       
-      window.history.replaceState({}, document.title);
+      navigate(location.pathname, { replace: true, state: {} });
       return () => clearTimeout(highlightTimer);
     }
   }, [location.state, events]);
@@ -295,47 +274,70 @@ const Events = () => {
     }
   };
 
-  const handleConfirmRegistration = async () => {
-    if (!registeringEvent) return;
-    setIsSubmittingReg(true);
-    setRegError('');
+  const handleRegisterFclClick = async () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    setIsFetchingFclProfile(true);
+    setFclRegError('');
     try {
-      const eventId = String(registeringEvent.id).replace('db-', '');
-      const response = await fetch(`${API_BASE_URL}/api/events/${eventId}/registrations`, {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const email = payload.sub || localStorage.getItem('logged_in_user_email');
+      
+      const response = await fetch(`${API_BASE_URL}/api/user/profile/${email}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const profile = await response.json();
+        setFclProfileData(profile);
+        setIsFclModalOpen(true);
+      } else {
+        setFclRegError("Failed to fetch profile properties. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to load profile for FCL registration:", err);
+      setFclRegError("Connection failed. Please check your backend.");
+    } finally {
+      setIsFetchingFclProfile(false);
+    }
+  };
+
+  const handleConfirmFclRegistration = async () => {
+    setIsSubmittingFcl(true);
+    setFclRegError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/register-fcl`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ remarks: '' })
+        body: JSON.stringify({
+          email: fclProfileData.email,
+          name: fclProfileData.name,
+          roll_no: fclProfileData.rollno,
+          chess_username: fclProfileData.chesscom,
+          contact: fclProfileData.contact,
+          secondary_email: fclProfileData.secondary_email
+        })
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Registration failed.');
-
-      // Trigger confetti
-      confetti({
-        particleCount: 150,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#f2ca50', '#d4af37', '#ffffff', '#1c1b1b'] 
-      });
-
-      // Add to local registered event IDs
-      const cleanId = Number(eventId);
-      setMyRegistrations(prev => {
-        if (!prev.includes(cleanId)) {
-          return [...prev, cleanId];
-        }
-        return prev;
-      });
-
-      // Close modal
-      setRegisteringEvent(null);
-      alert("RSVP Confirmed successfully!");
+      
+      const data = await response.json();
+      if (response.ok) {
+        setFclRegSuccess(true);
+        setIsRegisteredForFcl(true);
+      } else {
+        setFclRegError(data.error || "Failed to register.");
+      }
     } catch (err) {
-      setRegError(err.message);
+      console.error("FCL registration submission failure:", err);
+      setFclRegError("Server connection error.");
     } finally {
-      setIsSubmittingReg(false);
+      setIsSubmittingFcl(false);
     }
   };
 
@@ -366,7 +368,6 @@ const Events = () => {
        shortDesc: dbEvent.short_description,
        fullDesc: dbEvent.event_briefing,
        register_link: dbEvent.register_link,
-       has_standings: dbEvent.has_standings,
        schedule: [] 
     }));
   };
@@ -526,7 +527,6 @@ const Events = () => {
              shortDesc: dbEvent.short_description,
              fullDesc: dbEvent.event_briefing,
              register_link: dbEvent.register_link,
-             has_standings: dbEvent.has_standings,
              schedule: [] 
           }));
           formattedDbEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -604,9 +604,13 @@ const Events = () => {
     .sort((a, b) => new Date(b.endDate || b.date) - new Date(a.endDate || a.date));
 
   const renderEventCard = (event) => {
-    const isLolEvent = event.title.toLowerCase().includes("league of legends");
+    const isLolEvent = event.title?.toLowerCase()?.includes("league of legends") || false;
     const eventStartDate = new Date(event.date);
     const eventEndDate = event.endDate ? new Date(event.endDate) : null;
+    
+    const compareDate = new Date(event.endDate || event.date);
+    compareDate.setHours(0,0,0,0);
+    const isPastEvent = compareDate < today;
     
     return (
       <div 
@@ -642,10 +646,12 @@ const Events = () => {
           </div>
           
           <div className="flex items-center justify-between md:flex-col md:items-end gap-4 min-w-[140px]">
-            <div className="text-left md:text-right">
-              <div className="text-xs text-on-surface-variant/70 tracking-wider mb-1 uppercase font-mono">Time</div>
-              <div className="font-medium text-on-surface">{event.time}</div>
-            </div>
+            {!isPastEvent && (
+              <div className="text-left md:text-right">
+                <div className="text-xs text-on-surface-variant/70 tracking-wider mb-1 uppercase font-mono">Time</div>
+                <div className="font-medium text-on-surface">{event.time}</div>
+              </div>
+            )}
             <button 
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                 expandedId === event.id ? 'bg-primary text-[#3c2f00]' : 'bg-surface-container border border-outline-variant/20 text-on-surface hover:bg-surface-container-high'
@@ -705,104 +711,15 @@ const Events = () => {
                     compareDate.setHours(0, 0, 0, 0);
                     const isPastEvent = compareDate < today;
 
-                    if (isPastEvent || event.has_standings) {
-                      let registrationButton = null;
-                      if (isPastEvent) {
-                        registrationButton = (
+                    if (isPastEvent) {
+                      return (
+                        <div className="space-y-3">
                           <button
                             disabled
                             className="block w-full text-center bg-surface-container-high text-on-surface-variant/40 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/10 text-xs font-label uppercase tracking-widest"
                           >
                             REGISTRATION CLOSED
                           </button>
-                        );
-                      } else if (isLolEvent) {
-                        registrationButton = isRegisteredForLol ? (
-                          <button
-                            disabled
-                            className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
-                          >
-                            REGISTERED ✓
-                          </button>
-                        ) : (
-                          <button 
-                            onClick={handleRegisterLolClick}
-                            disabled={isFetchingLolProfile}
-                            className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
-                          >
-                            {isFetchingLolProfile ? "LOADING PROFILE..." : "REGISTER"}
-                          </button>
-                        );
-                      } else {
-                        let registrationUrl = null;
-                        try {
-                          const parsedUrl = new URL(event.register_link);
-                          if (['http:', 'https:'].includes(parsedUrl.protocol)) {
-                            registrationUrl = parsedUrl.href;
-                          }
-                        } catch {}
-                        if (registrationUrl) {
-                          registrationButton = (
-                            <a 
-                              href={registrationUrl} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
-                            >
-                              REGISTER
-                            </a>
-                          );
-                        } else {
-                          const cleanEventId = Number(String(event.id).replace('db-', ''));
-                          const isRegistered = myRegistrations.includes(cleanEventId);
-                          const isCandidates = event.title.toLowerCase().includes("candidate");
-                          const isFide = event.title.toLowerCase().includes("fide");
-                          const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
-                          if (isCandidates || isFide) {
-                            registrationButton = null;
-                          } else if (isFcl) {
-                            registrationButton = (
-                              <button
-                                disabled
-                                className="block w-full text-center bg-surface-container-high text-on-surface-variant/40 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/10 text-xs font-label uppercase tracking-widest"
-                              >
-                                REGISTRATION CLOSED
-                              </button>
-                            );
-                          } else if (!isLoggedIn) {
-                            registrationButton = (
-                              <Link 
-                                to="/login"
-                                className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
-                              >
-                                LOGIN TO REGISTER
-                              </Link>
-                            );
-                          } else if (isRegistered) {
-                            registrationButton = (
-                              <button
-                                disabled
-                                className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
-                              >
-                                REGISTERED ✓
-                              </button>
-                            );
-                          } else {
-                            registrationButton = (
-                              <button 
-                                onClick={() => setRegisteringEvent(event)}
-                                className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10 cursor-pointer"
-                              >
-                                REGISTER
-                              </button>
-                            );
-                          }
-                        }
-                      }
-
-                      return (
-                        <div className="space-y-3">
-                          {registrationButton}
                           <Link
                             to={`/events/results/${event.id}`}
                             className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
@@ -812,6 +729,8 @@ const Events = () => {
                         </div>
                       );
                     }
+
+                    const isFclEvent = event.title.toLowerCase().includes("fresher");
 
                     if (isLolEvent) {
                       return isRegisteredForLol ? (
@@ -832,20 +751,29 @@ const Events = () => {
                       );
                     }
 
-                    let registrationUrl = null;
-                    try {
-                      const parsedUrl = new URL(event.register_link);
-                      if (['http:', 'https:'].includes(parsedUrl.protocol)) {
-                        registrationUrl = parsedUrl.href;
-                      }
-                    } catch {
-                      // Invalid or legacy unsafe links are not rendered as clickable actions.
+                    if (isFclEvent) {
+                      return isRegisteredForFcl ? (
+                        <button
+                          disabled
+                          className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
+                        >
+                          REGISTERED ✓
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleRegisterFclClick}
+                          disabled={isFetchingFclProfile}
+                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
+                        >
+                          {isFetchingFclProfile ? "LOADING PROFILE..." : "REGISTER"}
+                        </button>
+                      );
                     }
 
-                    if (registrationUrl) {
+                    if (event.register_link) {
                       return (
                         <a 
-                          href={registrationUrl} 
+                          href={event.register_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
@@ -855,52 +783,7 @@ const Events = () => {
                       );
                     }
 
-                    const cleanEventId = Number(String(event.id).replace('db-', ''));
-                    const isRegistered = myRegistrations.includes(cleanEventId);
-                    const isCandidates = event.title.toLowerCase().includes("candidate");
-                    const isFide = event.title.toLowerCase().includes("fide");
-                    const isFcl = cleanEventId === 8 || event.title.toLowerCase().includes("fresher");
-                    if (isCandidates || isFide) {
-                      return null;
-                    }
-                    if (isFcl) {
-                      return (
-                        <button
-                          disabled
-                          className="block w-full text-center bg-surface-container-high text-on-surface-variant/40 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/10 text-xs font-label uppercase tracking-widest"
-                        >
-                          REGISTRATION CLOSED
-                        </button>
-                      );
-                    }
-                    if (!isLoggedIn) {
-                      return (
-                        <Link 
-                          to="/login"
-                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
-                        >
-                          LOGIN TO REGISTER
-                        </Link>
-                      );
-                    } else if (isRegistered) {
-                      return (
-                        <button
-                          disabled
-                          className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
-                        >
-                          REGISTERED ✓
-                        </button>
-                      );
-                    } else {
-                      return (
-                        <button 
-                          onClick={() => setRegisteringEvent(event)}
-                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10 cursor-pointer"
-                        >
-                          REGISTER
-                        </button>
-                      );
-                    }
+                    return null;
                   })()}
                 </div>
               </div>
@@ -1071,93 +954,6 @@ const Events = () => {
 
       <Footer />
 
-      {/* Central Confirm Registration Modal */}
-      <AnimatePresence>
-        {registeringEvent && Number(String(registeringEvent.id).replace('db-', '')) !== 8 && !registeringEvent.title.toLowerCase().includes("candidate") && !registeringEvent.title.toLowerCase().includes("fide") && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-[#1c1b1b] border border-outline-variant/20 rounded-2xl w-full max-w-lg p-6 sm:p-8 relative shadow-2xl space-y-6"
-            >
-              <div className="flex justify-between items-center pb-4 border-b border-outline-variant/10">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary font-mono">Confirm Event Registration</span>
-                  <h3 className="text-xl font-serif text-on-surface mt-1">{registeringEvent.title}</h3>
-                </div>
-                <button 
-                  type="button" 
-                  onClick={() => { setRegisteringEvent(null); setRegError(''); }} 
-                  className="p-1.5 hover:bg-surface-container-highest rounded-full text-on-surface-variant hover:text-on-surface transition-colors flex items-center justify-center cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-lg">close</span>
-                </button>
-              </div>
-
-              <div className="space-y-4 text-gray-200">
-                <p className="text-[10px] text-primary/80 font-bold uppercase tracking-wider font-mono">
-                  ⚠️ Please verify your profile details. Registration data cannot be modified later.
-                </p>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name</label>
-                    <input readOnly value={profileData?.name || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Roll Number</label>
-                      <input readOnly value={profileData?.rollno || profileData?.roll_no || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Chess.com ID</label>
-                      <input readOnly value={profileData?.chesscom || 'Not Configured'} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">IITK Email Address</label>
-                    <input readOnly value={profileData?.email || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Contact Number</label>
-                    <input readOnly value={profileData?.contact || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none text-sm" />
-                  </div>
-                </div>
-              </div>
-
-              {regError && (
-                <div className="text-red-400 text-xs bg-red-950/30 border border-red-900/50 p-3 rounded-lg">
-                  {regError}
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => { setRegisteringEvent(null); setRegError(''); }} 
-                  disabled={isSubmittingReg}
-                  className="flex-1 py-3 px-4 border border-outline-variant/20 hover:border-outline-variant text-on-surface-variant hover:text-on-surface text-xs font-bold font-label uppercase tracking-widest rounded-xl transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleConfirmRegistration}
-                  disabled={isSubmittingReg}
-                  className="flex-1 py-3 px-4 bg-gradient-to-r from-[#f2ca50] to-[#d4af37] hover:from-[#d4af37] hover:to-[#b8962f] text-[#3c2f00] text-xs font-bold font-label uppercase tracking-widest rounded-xl shadow-lg hover:shadow-[#f2ca50]/10 transition-all cursor-pointer"
-                >
-                  {isSubmittingReg ? "Confirming..." : "Confirm"}
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       {/* LoL Registration Modal */}
       {isLolModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50 p-4">
@@ -1238,6 +1034,94 @@ const Events = () => {
                     className="px-5 py-2 bg-yellow-400 text-black font-bold rounded-md hover:bg-yellow-500 transition-colors text-sm flex items-center gap-2"
                   >
                     {isSubmittingLol ? "Registering..." : "Confirm & Register"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Freshers' Chess League Registration Modal */}
+      {isFclModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50 p-4">
+          <div className="bg-[#1a1a1a] p-8 rounded-xl max-w-lg w-full border border-gray-700 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h2 className="text-2xl text-yellow-400 mb-2 font-serif font-bold">Event Registration</h2>
+            <p className="text-gray-400 text-sm mb-6">Fresher's Chess League</p>
+            
+            {fclRegSuccess ? (
+              <div className="text-center py-6">
+                <span className="material-symbols-outlined text-6xl text-green-500 mb-4">check_circle</span>
+                <h3 className="text-xl font-bold text-gray-100 mb-2">Registration Confirmed!</h3>
+                <p className="text-gray-400 text-sm mb-6">You have been successfully registered for Fresher's Chess League.</p>
+                <button 
+                  onClick={() => {
+                    setIsFclModalOpen(false);
+                    setFclRegSuccess(false);
+                  }}
+                  className="px-6 py-2 bg-yellow-400 text-black font-bold rounded-md hover:bg-yellow-500 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 text-gray-200">
+                <p className="text-xs text-yellow-400/80 mb-2 font-semibold">
+                  ⚠️ Please verify that your profile details below are correct. These details cannot be modified during registration.
+                </p>
+                
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name</label>
+                  <input readOnly value={fclProfileData?.name || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Roll Number</label>
+                    <input readOnly value={fclProfileData?.rollno || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Chess.com Username</label>
+                    <input readOnly value={fclProfileData?.chesscom || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Primary Email (IITK)</label>
+                  <input readOnly value={fclProfileData?.email || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Secondary Email (Gmail)</label>
+                  <input readOnly value={fclProfileData?.secondary_email || 'Not Provided'} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Phone Number</label>
+                  <input readOnly value={fclProfileData?.contact || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+
+                {fclRegError && (
+                  <div className="text-red-400 text-xs mt-2 bg-red-950/30 border border-red-900/50 p-2.5 rounded-md">
+                    {fclRegError}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-4 mt-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsFclModalOpen(false)} 
+                    disabled={isSubmittingFcl}
+                    className="px-5 py-2 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleConfirmFclRegistration}
+                    disabled={isSubmittingFcl}
+                    className="px-5 py-2 bg-yellow-400 text-black font-bold rounded-md hover:bg-yellow-500 transition-colors text-sm flex items-center gap-2"
+                  >
+                    {isSubmittingFcl ? "Registering..." : "Confirm & Register"}
                   </button>
                 </div>
               </div>

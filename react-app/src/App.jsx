@@ -9,18 +9,18 @@ import PageTransition from './components/PageTransition';
 import ServerError500 from './pages/ServerError500';
 import { API_BASE_URL } from './config';
 import { globalCache } from './utils/cache';
-import AdminRoute from './components/AdminRoute';
 
 // Import critical images for preloading
 import chessboardImg from './assets/chessclubiitklogo.jpeg';
 import homePgBg from './pages/home-pg-bg.png';
 import logoImg from './assets/chessclubiitklogo.jpeg';
 
+import AdminRoute from './components/AdminRoute';
+
 // Lazy loaded page components for optimal production bundle code-splitting
 const Landing = React.lazy(() => import('./pages/Landing'));
 const Calendar = React.lazy(() => import('./pages/Calendar'));
 const Events = React.lazy(() => import('./pages/Events'));
-const EventRegistration = React.lazy(() => import('./pages/EventRegistration'));
 const Blogs = React.lazy(() => import('./pages/Blogs'));
 const BlogPost = React.lazy(() => import('./pages/BlogPost'));
 const UserProfile = React.lazy(() => import('./pages/UserProfile'));
@@ -97,10 +97,14 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
 
   useEffect(() => {
-    // 1. Database Connection check promise
-    const dbPromise = fetch(`${API_BASE_URL}/db-test`)
-      .then(res => res.ok ? res.json() : null)
-      .catch(() => null);
+    // 1. Database Connection check promise with 2s timeout safeguard
+    const dbPromise = new Promise((resolve) => {
+      const timer = setTimeout(() => resolve(null), 2000);
+      fetch(`${API_BASE_URL}/db-test`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => { clearTimeout(timer); resolve(data); })
+        .catch(() => { clearTimeout(timer); resolve(null); });
+    });
 
     // 2. Image preloading promise
     const preloadImage = (src) => {
@@ -142,7 +146,6 @@ function App() {
                 <Route path="/calendar" element={<PageTransition><Calendar /></PageTransition>} />
                 <Route path="/events" element={<PageTransition><Events /></PageTransition>} />
                 <Route path="/events/results/:id" element={<PageTransition><Results /></PageTransition>} />
-                <Route path="/events/register/:id" element={<PageTransition><EventRegistration /></PageTransition>} />
                 <Route path="/blogs" element={<PageTransition><Blogs /></PageTransition>} />
                 <Route path="/blog/:id" element={<PageTransition><BlogPost /></PageTransition>} />
                 <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />

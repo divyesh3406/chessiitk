@@ -21,13 +21,14 @@ import kratagyaImg from "../assets/secretaries/kratagya.jpg";
 import madhavImg from "../assets/secretaries/madhav.jpg";
 import mayankBhakhandImg from "../assets/secretaries/mayank_bhakhand.jpeg";
 import mayankGautamImg from "../assets/secretaries/mayank_gautam.webp";
+import mishthyImg from "../assets/secretaries/mishthy.jpg";
+import miteshImg from "../assets/secretaries/mitesh.jpg";
 import nishantImg from "../assets/secretaries/nishant.jpg";
 import piyushImg from "../assets/secretaries/piyush.jpg";
 import prajwalImg from "../assets/secretaries/prajwal.jpeg";
 import pratikImg from "../assets/secretaries/pratik.jpg";
 import swayamImg from "../assets/secretaries/swayam.JPG";
 import siddhantImg from "../assets/secretaries/siddhant.jpg";
-import shaoniImg from "../assets/secretaries/shaoni.jpg";
 import dipinImg from "../assets/secretaries/dipin.jpg";
 import lakshyaImg from "../assets/secretaries/lakshya.jpg";
 import Footer from '../components/Footer';
@@ -146,9 +147,9 @@ const SECRETARIES = [
     role: "Secretary",
     funnyDescription: `"My opening preparation lasts longer than my actual games."`,
     image: arushImg,
-    email: "arushj25@iitk.ac.in",
-    instagram: "https://www.instagram.com/arushj876/",
-    linkedin: "https://www.linkedin.com/in/arush-jain-0b34a0325/"
+    email: "arushj24@iitk.ac.in",
+    instagram: "https://www.instagram.com/arush_jain/",
+    linkedin: "https://www.linkedin.com/in/arush-jain/"
   },
   {
     id: "sec-6",
@@ -186,9 +187,9 @@ const SECRETARIES = [
     role: "Secretary",
     funnyDescription: `"In my defence, the knight jumped out of nowhere."`,
     image: dipinImg,
-    email: "dipinpandey25@iitk.ac.in",
-    instagram: "https://www.instagram.com/dipinpandey_?igsi=MXc0ZXNwcTRhdGk0Mg%3D%3D&utm_source=qr",
-    linkedin: "https://www.linkedin.com/in/dipin-pandey-332936340?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+    email: "dipinp24@iitk.ac.in",
+    instagram: "https://www.instagram.com/dipin_pandey/",
+    linkedin: "https://www.linkedin.com/in/dipin-pandey/"
   },
   {
     id: "sec-10",
@@ -241,6 +242,26 @@ const SECRETARIES = [
     linkedin: "https://www.linkedin.com/in/mayank-gautam-48b844376?utm_source=share_via&utm_content=profile&utm_medium=member_android"
   },
   {
+    id: "sec-18",
+    name: "Mishthy Khatwa",
+    role: "Secretary",
+    funnyDescription: `"My pieces have trust issues with me"`,
+    image: mishthyImg,
+    email: "mishthyk24@iitk.ac.in",
+    instagram: "https://www.instagram.com/mishthy_khatwa/",
+    linkedin: "https://www.linkedin.com/in/mishthy-khatwa/"
+  },
+  {
+    id: "sec-18b",
+    name: "Mitesh Jitendra Jethawa",
+    role: "Secretary",
+    funnyDescription: `"Life is like chess, every move counts."`,
+    image: miteshImg,
+    email: "jethawa25@iitk.ac.in",
+    instagram: "https://www.instagram.com/jjmitesh_19",
+    linkedin: "https://www.linkedin.com/in/miteshjethawa"
+  },
+  {
     id: "sec-19",
     name: "Nishant",
     role: "Secretary",
@@ -279,16 +300,6 @@ const SECRETARIES = [
     email: "pratikd24@iitk.ac.in",
     instagram: "https://www.instagram.com/prattsss__/",
     linkedin: "https://www.linkedin.com/in/pratik-dhanuka-7789023b5/"
-  },
-  {
-    id: "sec-23",
-    name: "Shaoni Mukherjee",
-    role: "Secretary",
-    funnyDescription: `"Life is like chess. I don't know how to play chess."`,
-    image: shaoniImg,
-    email: "shaonim25@iitk.ac.in",
-    instagram: "https://www.instagram.com/shaoni_mukherjee/",
-    linkedin: "https://www.linkedin.com/in/shaoni-mukherjee-618b0b316?utm_source=share_via&utm_content=profile&utm_medium=member_android"
   },
   {
     id: "sec-24",
