@@ -22,7 +22,7 @@ const AdminPortal = () => {
   const [approvalResult, setApprovalResult] = useState(null); // { email, temp_password }
 
   // Registrations States
-  const [selectedRegEvent, setSelectedRegEvent] = useState('fcl');
+  const [selectedRegEvent, setSelectedRegEvent] = useState('grand_swiss');
   const [registrations, setRegistrations] = useState([]);
   const [loadingRegs, setLoadingRegs] = useState(false);
   const [exportingCsv, setExportingCsv] = useState(false);
@@ -549,7 +549,7 @@ const AdminPortal = () => {
             ) : (
               <>
                 {/* Stats Cards Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-6">
                   <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 shadow-sm">
                     <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest font-mono">Total Users</div>
                     <div className="text-4xl font-serif text-primary mt-2 font-bold">{stats?.total_users || 0}</div>
@@ -557,6 +557,10 @@ const AdminPortal = () => {
                   <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 shadow-sm">
                     <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest font-mono">Pending Alumni</div>
                     <div className="text-4xl font-serif text-primary mt-2 font-bold">{stats?.pending_alumni || 0}</div>
+                  </div>
+                  <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 shadow-sm">
+                    <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest font-mono">Grand Swiss Registrations</div>
+                    <div className="text-4xl font-serif text-primary mt-2 font-bold">{stats?.grand_swiss_registrations || 0}</div>
                   </div>
                   <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-6 shadow-sm">
                     <div className="text-zinc-500 text-[10px] uppercase font-bold tracking-widest font-mono">LoL Registrations</div>
@@ -715,6 +719,7 @@ const AdminPortal = () => {
                   onChange={(e) => setSelectedRegEvent(e.target.value)}
                   className="p-2.5 bg-[#111111] rounded-md border border-gray-800 focus:border-yellow-400 focus:outline-none text-xs text-gray-200"
                 >
+                  <option value="grand_swiss">IITK Grand Swiss</option>
                   <option value="fcl">Fresher's Chess League</option>
                   <option value="lol">League of Legends 6.0</option>
                 </select>

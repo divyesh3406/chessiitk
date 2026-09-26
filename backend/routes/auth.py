@@ -756,9 +756,11 @@ def register_lol():
             connection.close()
 
 @auth_bp.route('/register-lol/status', methods=['GET'])
-@jwt_required()
+@jwt_required(optional=True)
 def register_lol_status():
     email = get_jwt_identity() or ''
+    if not email:
+        return jsonify({"is_registered": False}), 200
     connection = None
     try:
         connection = get_db_connection()
@@ -778,6 +780,147 @@ def register_lol_status():
     finally:
         if connection:
             connection.close()
+
+
+def get_fcl_event(cursor):
+    cursor.execute(
+        """
+        SELECT id, event_date, event_end_date
+        FROM events
+        WHERE title ILIKE '%fresher%' OR title ILIKE '%fcl%'
+        ORDER BY
+            CASE WHEN COALESCE(event_end_date, event_date) >= CURRENT_DATE THEN 0 ELSE 1 END,
+            CASE WHEN COALESCE(event_end_date, event_date) >= CURRENT_DATE THEN event_date END ASC,
+            event_date DESC
+        LIMIT 1
+        """
+    )
+    return cursor.fetchone()
+
+
+@auth_bp.route('/register-fcl/status', methods=['GET'])
+@jwt_required(optional=True)
+def register_fcl_status():
+    email = get_jwt_identity() or ''
+    if not email:
+        return jsonify({"is_registered": False}), 200
+    connection = None
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            event = get_fcl_event(cursor)
+            if not event:
+                return jsonify({"is_registered": False}), 200
+            cursor.execute(
+                'SELECT id FROM "fclEntries" WHERE (event_id = %s OR event_id IS NULL) AND LOWER(email) = LOWER(%s)',
+                (event[0], email),
+            )
+            is_registered = cursor.fetchone() is not None
+            return jsonify({"is_registered": is_registered}), 200
+    except Exception as e:
+        print(f"FCL Registration Status Error: {e}")
+        return jsonify({"error": "Internal server error."}), 500
+    finally:
+        if connection:
+            connection.close()
+
+
+# --- IITK GRAND SWISS EVENT REGISTRATION ---
+
+def get_grand_swiss_event(cursor):
+    cursor.execute(
+        """
+        SELECT id, event_date, event_end_date
+        FROM events
+        WHERE title ILIKE '%grand swiss%' OR title ILIKE '%swiss%'
+        ORDER BY
+            CASE WHEN COALESCE(event_end_date, event_date) >= CURRENT_DATE THEN 0 ELSE 1 END,
+            CASE WHEN COALESCE(event_end_date, event_date) >= CURRENT_DATE THEN event_date END ASC,
+            event_date DESC
+        LIMIT 1
+        """
+    )
+    return cursor.fetchone()
+
+
+@auth_bp.route('/register-grand-swiss', methods=['POST'])
+@jwt_required()
+def register_grand_swiss():
+    email = (get_jwt_identity() or '').strip()
+
+    connection = None
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            event = get_grand_swiss_event(cursor)
+            if not event:
+                return jsonify({"error": "IITK Grand Swiss event is not configured."}), 404
+
+            from datetime import date
+            if (event[2] or event[1]) < date.today():
+                return jsonify({"error": "Registration is closed. This event has already ended."}), 400
+
+            cursor.execute(
+                """
+                SELECT email, name, roll_no, chess_username, contact, secondary_email
+                FROM users WHERE LOWER(email) = LOWER(%s)
+                """,
+                (email,),
+            )
+            profile = cursor.fetchone()
+            if not profile or not all(profile[:5]):
+                return jsonify({"error": "Complete your profile before registering."}), 400
+
+            # Check if user is already registered
+            cursor.execute(
+                'SELECT id FROM "grandSwissEntries" WHERE (event_id = %s OR event_id IS NULL) AND LOWER(email) = LOWER(%s)',
+                (event[0], email),
+            )
+            if cursor.fetchone():
+                return jsonify({"error": "You are already registered for IITK Grand Swiss."}), 409
+
+            # Insert registration record
+            cursor.execute(
+                'INSERT INTO "grandSwissEntries" (event_id, email, name, roll_no, chess_username, contact, secondary_email) VALUES (%s, %s, %s, %s, %s, %s, %s)',
+                (event[0], profile[0], profile[1], profile[2], profile[3], profile[4], profile[5] or '')
+            )
+            connection.commit()
+            return jsonify({"message": "Successfully registered for IITK Grand Swiss!"}), 201
+
+    except Exception as e:
+        print(f"Grand Swiss Registration Error: {e}")
+        return jsonify({"error": "Internal server error."}), 500
+    finally:
+        if connection:
+            connection.close()
+
+
+@auth_bp.route('/register-grand-swiss/status', methods=['GET'])
+@jwt_required(optional=True)
+def register_grand_swiss_status():
+    email = get_jwt_identity() or ''
+    if not email:
+        return jsonify({"is_registered": False}), 200
+    connection = None
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            event = get_grand_swiss_event(cursor)
+            if not event:
+                return jsonify({"is_registered": False}), 200
+            cursor.execute(
+                'SELECT id FROM "grandSwissEntries" WHERE (event_id = %s OR event_id IS NULL) AND LOWER(email) = LOWER(%s)',
+                (event[0], email),
+            )
+            is_registered = cursor.fetchone() is not None
+            return jsonify({"is_registered": is_registered}), 200
+    except Exception as e:
+        print(f"Grand Swiss Registration Status Error: {e}")
+        return jsonify({"error": "Internal server error."}), 500
+    finally:
+        if connection:
+            connection.close()
+
 
 
 @auth_bp.route('/alumni-request', methods=['POST'])

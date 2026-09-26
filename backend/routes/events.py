@@ -8,7 +8,8 @@ events_bp = Blueprint('events', __name__)
 
 def secretary_required():
     jwt_data = get_jwt() or {}
-    if jwt_data.get('role') != 'secretary':
+    role = jwt_data.get('role')
+    if role not in ('secretary', 'admin'):
         return jsonify({"error": "Secretary privileges required."}), 403
     return None
 

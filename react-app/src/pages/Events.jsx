@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../config';
 
 const Events = () => {
   // 1. Pull auth context and token for admin verification and API calls
-  const { isLoggedIn, token } = useAuth();
+  const { isLoggedIn, token, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedId, setExpandedId] = useState(null);
@@ -90,6 +90,15 @@ const Events = () => {
   const [isSubmittingFcl, setIsSubmittingFcl] = useState(false);
   const [isFetchingFclProfile, setIsFetchingFclProfile] = useState(false);
 
+  // Grand Swiss Registration Custom States
+  const [isRegisteredForGrandSwiss, setIsRegisteredForGrandSwiss] = useState(false);
+  const [isGrandSwissModalOpen, setIsGrandSwissModalOpen] = useState(false);
+  const [grandSwissProfileData, setGrandSwissProfileData] = useState(null);
+  const [grandSwissRegError, setGrandSwissRegError] = useState('');
+  const [grandSwissRegSuccess, setGrandSwissRegSuccess] = useState(false);
+  const [isSubmittingGrandSwiss, setIsSubmittingGrandSwiss] = useState(false);
+  const [isFetchingGrandSwissProfile, setIsFetchingGrandSwissProfile] = useState(false);
+
   // Check LoL registration status
   useEffect(() => {
     if (isLoggedIn && token) {
@@ -135,6 +144,30 @@ const Events = () => {
       checkFclStatus();
     } else {
       setIsRegisteredForFcl(false);
+    }
+  }, [isLoggedIn, token]);
+
+  // Check Grand Swiss registration status
+  useEffect(() => {
+    if (isLoggedIn && token) {
+      const checkGrandSwissStatus = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/register-grand-swiss/status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setIsRegisteredForGrandSwiss(data.is_registered);
+          }
+        } catch (e) {
+          console.error("Error checking grand swiss registration status:", e);
+        }
+      };
+      checkGrandSwissStatus();
+    } else {
+      setIsRegisteredForGrandSwiss(false);
     }
   }, [isLoggedIn, token]);
 
@@ -224,6 +257,11 @@ const Events = () => {
         }
       });
       
+      if (response.status === 401) {
+        logout();
+        navigate('/login');
+        return;
+      }
       if (response.ok) {
         const profile = await response.json();
         setLolProfileData(profile);
@@ -291,6 +329,11 @@ const Events = () => {
         }
       });
       
+      if (response.status === 401) {
+        logout();
+        navigate('/login');
+        return;
+      }
       if (response.ok) {
         const profile = await response.json();
         setFclProfileData(profile);
@@ -338,6 +381,78 @@ const Events = () => {
       setFclRegError("Server connection error.");
     } finally {
       setIsSubmittingFcl(false);
+    }
+  };
+
+  const handleRegisterGrandSwissClick = async () => {
+    if (!isLoggedIn) {
+      navigate('/login');
+      return;
+    }
+    setIsFetchingGrandSwissProfile(true);
+    setGrandSwissRegError('');
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const email = payload.sub || localStorage.getItem('logged_in_user_email');
+      
+      const response = await fetch(`${API_BASE_URL}/api/user/profile/${email}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 401) {
+        logout();
+        navigate('/login');
+        return;
+      }
+      if (response.ok) {
+        const profile = await response.json();
+        setGrandSwissProfileData(profile);
+        setIsGrandSwissModalOpen(true);
+      } else {
+        setGrandSwissRegError("Failed to fetch profile properties. Please try again.");
+      }
+    } catch (err) {
+      console.error("Failed to load profile for Grand Swiss registration:", err);
+      setGrandSwissRegError("Connection failed. Please check your backend.");
+    } finally {
+      setIsFetchingGrandSwissProfile(false);
+    }
+  };
+
+  const handleConfirmGrandSwissRegistration = async () => {
+    setIsSubmittingGrandSwiss(true);
+    setGrandSwissRegError('');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/register-grand-swiss`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: grandSwissProfileData.email,
+          name: grandSwissProfileData.name,
+          roll_no: grandSwissProfileData.rollno,
+          chess_username: grandSwissProfileData.chesscom,
+          contact: grandSwissProfileData.contact,
+          secondary_email: grandSwissProfileData.secondary_email
+        })
+      });
+      
+      const data = await response.json();
+      if (response.ok) {
+        setGrandSwissRegSuccess(true);
+        setIsRegisteredForGrandSwiss(true);
+      } else {
+        setGrandSwissRegError(data.error || "Failed to register.");
+      }
+    } catch (err) {
+      console.error("Grand Swiss registration submission failure:", err);
+      setGrandSwissRegError("Server connection error.");
+    } finally {
+      setIsSubmittingGrandSwiss(false);
     }
   };
 
@@ -483,13 +598,19 @@ const Events = () => {
     const endpoint = realId ? `/api/events/${realId}` : '/api/events';
 
     try {
+      // Sanitize register_link: only send it if it's a valid HTTP(S) URL
+      const sanitizedFormData = { ...formData };
+      const link = (sanitizedFormData.register_link || '').trim();
+      const isValidUrl = link && /^https?:\/\/.+/.test(link);
+      sanitizedFormData.register_link = isValidUrl ? link : null;
+
       const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(sanitizedFormData)
       });
 
       if (response.ok) {
@@ -533,9 +654,13 @@ const Events = () => {
           setEvents(formattedDbEvents);
           globalCache.events = formattedDbEvents;
         }
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        alert(`Failed to ${editingEventId ? 'update' : 'create'} event: ${errData.error || `Server error (${response.status})`}`);
       }
     } catch (error) {
       console.error("Failed to save event:", error);
+      alert("Network error: Could not reach the server. Please try again.");
     }
   };
 
@@ -731,6 +856,7 @@ const Events = () => {
                     }
 
                     const isFclEvent = event.title.toLowerCase().includes("fresher");
+                    const isGrandSwissEvent = event.title.toLowerCase().includes("swiss");
 
                     if (isLolEvent) {
                       return isRegisteredForLol ? (
@@ -766,6 +892,25 @@ const Events = () => {
                           className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
                         >
                           {isFetchingFclProfile ? "LOADING PROFILE..." : "REGISTER"}
+                        </button>
+                      );
+                    }
+
+                    if (isGrandSwissEvent) {
+                      return isRegisteredForGrandSwiss ? (
+                        <button
+                          disabled
+                          className="block w-full text-center bg-surface-container-high text-on-surface-variant/60 py-3 rounded-xl font-bold cursor-not-allowed border border-outline-variant/20 text-xs font-label uppercase tracking-widest"
+                        >
+                          REGISTERED ✓
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={handleRegisterGrandSwissClick}
+                          disabled={isFetchingGrandSwissProfile}
+                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
+                        >
+                          {isFetchingGrandSwissProfile ? "LOADING PROFILE..." : "REGISTER"}
                         </button>
                       );
                     }
@@ -1122,6 +1267,94 @@ const Events = () => {
                     className="px-5 py-2 bg-yellow-400 text-black font-bold rounded-md hover:bg-yellow-500 transition-colors text-sm flex items-center gap-2"
                   >
                     {isSubmittingFcl ? "Registering..." : "Confirm & Register"}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* IITK Grand Swiss Registration Modal */}
+      {isGrandSwissModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex justify-center items-center z-50 p-4">
+          <div className="bg-[#1a1a1a] p-8 rounded-xl max-w-lg w-full border border-gray-700 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <h2 className="text-2xl text-yellow-400 mb-2 font-serif font-bold">Event Registration</h2>
+            <p className="text-gray-400 text-sm mb-6">IITK Grand Swiss</p>
+            
+            {grandSwissRegSuccess ? (
+              <div className="text-center py-6">
+                <span className="material-symbols-outlined text-6xl text-green-500 mb-4">check_circle</span>
+                <h3 className="text-xl font-bold text-gray-100 mb-2">Registration Confirmed!</h3>
+                <p className="text-gray-400 text-sm mb-6">You have been successfully registered for IITK Grand Swiss.</p>
+                <button 
+                  onClick={() => {
+                    setIsGrandSwissModalOpen(false);
+                    setGrandSwissRegSuccess(false);
+                  }}
+                  className="px-6 py-2 bg-yellow-400 text-black font-bold rounded-md hover:bg-yellow-500 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4 text-gray-200">
+                <p className="text-xs text-yellow-400/80 mb-2 font-semibold">
+                  ⚠️ Please verify that your profile details below are correct. These details cannot be modified during registration.
+                </p>
+                
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name</label>
+                  <input readOnly value={grandSwissProfileData?.name || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+                
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Roll Number</label>
+                    <input readOnly value={grandSwissProfileData?.rollno || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Chess.com Username</label>
+                    <input readOnly value={grandSwissProfileData?.chesscom || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Primary Email (IITK)</label>
+                  <input readOnly value={grandSwissProfileData?.email || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Secondary Email (Gmail)</label>
+                  <input readOnly value={grandSwissProfileData?.secondary_email || 'Not Provided'} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Phone Number</label>
+                  <input readOnly value={grandSwissProfileData?.contact || ''} className="w-full p-2.5 bg-[#111111] rounded-md border border-gray-800 text-gray-400 cursor-not-allowed focus:outline-none" />
+                </div>
+
+                {grandSwissRegError && (
+                  <div className="text-red-400 text-xs mt-2 bg-red-950/30 border border-red-900/50 p-2.5 rounded-md">
+                    {grandSwissRegError}
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-4 mt-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsGrandSwissModalOpen(false)} 
+                    disabled={isSubmittingGrandSwiss}
+                    className="px-5 py-2 bg-gray-800 rounded-md hover:bg-gray-700 transition-colors font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={handleConfirmGrandSwissRegistration}
+                    disabled={isSubmittingGrandSwiss}
+                    className="px-5 py-2 bg-yellow-400 text-black font-bold rounded-md hover:bg-yellow-500 transition-colors text-sm flex items-center gap-2"
+                  >
+                    {isSubmittingGrandSwiss ? "Registering..." : "Confirm & Register"}
                   </button>
                 </div>
               </div>

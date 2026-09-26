@@ -59,11 +59,16 @@ def get_stats():
             cur.execute("SELECT COUNT(*) FROM \"fclEntries\"")
             fcl_registrations = cur.fetchone()[0]
 
+            # 5. Grand Swiss entries count
+            cur.execute("SELECT COUNT(*) FROM \"grandSwissEntries\"")
+            grand_swiss_registrations = cur.fetchone()[0]
+
             return jsonify({
                 "total_users": total_users,
                 "pending_alumni": pending_alumni,
                 "lol_registrations": lol_registrations,
-                "fcl_registrations": fcl_registrations
+                "fcl_registrations": fcl_registrations,
+                "grand_swiss_registrations": grand_swiss_registrations
             }), 200
     except Exception as e:
         print(f"Admin Stats Error: {e}")
@@ -241,10 +246,10 @@ def get_registrations(event_name):
     if not verify_admin_privileges():
         return jsonify({"error": "Admin access required."}), 403
 
-    if event_name not in ('lol', 'fcl'):
+    if event_name not in ('lol', 'fcl', 'grand_swiss', 'swiss'):
         return jsonify({"error": "Invalid event selection."}), 400
 
-    table_name = "lolEntries" if event_name == 'lol' else "fclEntries"
+    table_name = "lolEntries" if event_name == 'lol' else ("grandSwissEntries" if event_name in ('grand_swiss', 'swiss') else "fclEntries")
     conn = None
     try:
         conn = get_db_connection()
@@ -268,10 +273,10 @@ def get_registrations_csv(event_name):
     if not verify_admin_privileges():
         return jsonify({"error": "Admin access required."}), 403
 
-    if event_name not in ('lol', 'fcl'):
+    if event_name not in ('lol', 'fcl', 'grand_swiss', 'swiss'):
         return jsonify({"error": "Invalid event selection."}), 400
 
-    table_name = "lolEntries" if event_name == 'lol' else "fclEntries"
+    table_name = "lolEntries" if event_name == 'lol' else ("grandSwissEntries" if event_name in ('grand_swiss', 'swiss') else "fclEntries")
     conn = None
     try:
         conn = get_db_connection()
@@ -416,10 +421,10 @@ def delete_registration(event_name, record_id):
     if not verify_admin_privileges():
         return jsonify({"error": "Admin access required."}), 403
 
-    if event_name not in ('lol', 'fcl'):
+    if event_name not in ('lol', 'fcl', 'grand_swiss', 'swiss'):
         return jsonify({"error": "Invalid event selection."}), 400
 
-    table_name = "lolEntries" if event_name == 'lol' else "fclEntries"
+    table_name = "lolEntries" if event_name == 'lol' else ("grandSwissEntries" if event_name in ('grand_swiss', 'swiss') else "fclEntries")
     admin_email = get_jwt_identity()
     conn = None
     try:
