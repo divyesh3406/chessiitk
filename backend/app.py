@@ -160,6 +160,7 @@ def login():
         if conn:
             conn.close()
 
+@app.route("/")
 @app.route("/health")
 def health():
     return {"status": "ok"}
