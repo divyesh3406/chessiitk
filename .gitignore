@@ -1,11 +1,16 @@
 .vercel
 .env*
+*.env
+**/.env*
 **/__pycache__/ 
 backend/venv/
 .vscode/
 .DS_Store
 *.log
 *_data.sql
+*.sql
+backend/backups/
+**/backups/
 cloud-sql-proxy
 backend/cloud-sql-proxy
 react-app/cloud-sql-proxy
@@ -14,3 +19,4 @@ react-app/dist/
 react-app/build_err.txt
 react-app/vite_err.txt
 react-app/eslint_report.*
+
