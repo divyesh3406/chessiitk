@@ -144,7 +144,7 @@ const MainLayout = ({ children }) => {
                 {nextEvent.title}
               </span>
               <span className="text-[10px] text-on-surface-variant font-medium font-mono mt-0.5 leading-none">
-{formatEventDateTime(nextEvent.endDate || nextEvent.date, nextEvent.time)}
+{formatEventDateTime(nextEvent.date, nextEvent.time)}
               </span>
             </div>
             <span className="material-symbols-outlined text-primary text-base group-hover:translate-x-0.5 transition-transform shrink-0 ml-1">
