@@ -262,13 +262,9 @@ const Landing = () => {
 
   // Helper to map event to image
   const getEventImage = (event) => {
-    if (!event) return fresherImg;
+    if (!event) return logoImg;
     if (event.image_url && (event.image_url.startsWith('http') || event.image_url.startsWith('/'))) return event.image_url;
-    const title = (event.title || '').toLowerCase();
-    if (title.includes('swiss')) return grandSwissImg;
-    if (title.includes('fide')) return fideImg;
-    if (title.includes('league of legends') || title.includes('lol')) return lolImg;
-    return fresherImg;
+    return logoImg;
   };
 
   return (

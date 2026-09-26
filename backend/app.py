@@ -500,3 +500,5 @@ def update_featured_config():
 if __name__ == "__main__":
     # Local development settings with auto-reload enabled
     app.run(debug=True)
+
+
