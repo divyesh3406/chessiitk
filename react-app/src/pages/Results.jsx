@@ -9,11 +9,9 @@ const Results = () => {
   const { id } = useParams();
   const [event, setEvent] = useState(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
-  const [standings, setStandings] = useState([]);
-  const [loadingStandings, setLoadingStandings] = useState(true);
 
   useEffect(() => {
-    const fetchEventDetailsAndStandings = async () => {
+    const fetchEventDetails = async () => {
       let foundEvent = null;
       if (globalCache.events && Array.isArray(globalCache.events)) {
         foundEvent = globalCache.events.find(e => `db-${e.id}` === id || String(e.id) === id);
@@ -34,25 +32,41 @@ const Results = () => {
       
       setEvent(foundEvent);
       setLoadingEvent(false);
+    };
+    fetchEventDetails();
+  }, [id]);
 
-      const realId = id.startsWith('db-') ? id.replace('db-', '') : id;
+  const [standings, setStandings] = useState([]);
+  const [loadingStandings, setLoadingStandings] = useState(true);
+
+  useEffect(() => {
+    const fetchStandings = async () => {
+      if (!event || !event.id) {
+        setLoadingStandings(false);
+        return;
+      }
       try {
-        const res = await fetch(`${API_BASE_URL}/api/events/${realId}/standings`);
+        const res = await fetch(`${API_BASE_URL}/api/events/${event.id}/standings`);
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data)) {
-            setStandings(data);
-          }
+          setStandings(data || []);
         }
       } catch (e) {
-        console.error("Error loading standings data:", e);
-      } finally {
-        setLoadingStandings(false);
+        console.error("Error loading standings:", e);
       }
+      setLoadingStandings(false);
     };
-    
-    fetchEventDetailsAndStandings();
-  }, [id]);
+
+    if (event) {
+      fetchStandings();
+    }
+  }, [event]);
+
+  // Determine which columns to show based on whether ANY row has data for that column
+  const hasRollNo = standings.some(row => row.roll_no && row.roll_no.trim() !== '');
+  const hasScore = standings.some(row => row.score && row.score.trim() !== '');
+  const hasTb1 = standings.some(row => row.tb1 && row.tb1.trim() !== '');
+  const hasTb2 = standings.some(row => row.tb2 && row.tb2.trim() !== '');
 
   return (
     <div className="min-h-screen text-on-surface pt-4 sm:pt-6 font-sans relative">
@@ -74,12 +88,70 @@ const Results = () => {
           </div>
         </div>
 
-        {/* Loading / Standings / Empty State */}
-        {loadingStandings ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        {/* Loading State */}
+        {(loadingEvent || loadingStandings) ? (
+          <div className="flex justify-center py-20">
+            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
           </div>
-        ) : standings.length === 0 ? (
+        ) : standings.length > 0 ? (
+          /* Table Section */
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-low shadow-xl"
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-surface-container/50 border-b border-outline-variant/20">
+                    <th className="py-4 px-6 text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold w-20 text-center">Rank</th>
+                    <th className="py-4 px-6 text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold">Player Name</th>
+                    {hasRollNo && <th className="py-4 px-6 text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold">Roll No</th>}
+                    {hasScore && <th className="py-4 px-6 text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold text-center">Score</th>}
+                    {hasTb1 && <th className="py-4 px-6 text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold text-center">Tiebreak 1</th>}
+                    {hasTb2 && <th className="py-4 px-6 text-xs font-label uppercase tracking-widest text-on-surface-variant font-bold text-center">Tiebreak 2</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {standings.map((row, index) => (
+                    <tr 
+                      key={index}
+                      className="border-b border-outline-variant/10 hover:bg-surface-container/30 transition-colors"
+                    >
+                      <td className="py-4 px-6 text-center font-mono font-medium text-primary">
+                        {row.rank || (index + 1)}
+                      </td>
+                      <td className="py-4 px-6 font-medium text-on-surface">
+                        {row.name}
+                      </td>
+                      {hasRollNo && (
+                        <td className="py-4 px-6 font-mono text-on-surface-variant">
+                          {row.roll_no || '-'}
+                        </td>
+                      )}
+                      {hasScore && (
+                        <td className="py-4 px-6 text-center font-mono font-medium text-on-surface">
+                          {row.score || '-'}
+                        </td>
+                      )}
+                      {hasTb1 && (
+                        <td className="py-4 px-6 text-center font-mono text-on-surface-variant">
+                          {row.tb1 || '-'}
+                        </td>
+                      )}
+                      {hasTb2 && (
+                        <td className="py-4 px-6 text-center font-mono text-on-surface-variant">
+                          {row.tb2 || '-'}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        ) : (
           /* Empty State Section */
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -96,73 +168,11 @@ const Results = () => {
             </p>
             <Link 
               to="/events" 
-              state={{ defaultTab: 'past' }}
               className="px-6 py-2.5 rounded-xl bg-primary text-[#3c2f00] font-bold text-xs font-label uppercase tracking-widest hover:bg-[#d4af37] transition-all shadow-md shadow-primary/10 flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-sm">arrow_back</span>
               Return to Events
             </Link>
-          </motion.div>
-        ) : (
-          /* Standings Table Section */
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="bg-surface-container-low border border-outline-variant/10 rounded-3xl overflow-hidden shadow-xl"
-          >
-            <div className="px-6 py-5 border-b border-outline-variant/10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary text-2xl font-light">leaderboard</span>
-                <span className="font-serif font-bold text-lg text-on-surface">Leaderboard</span>
-              </div>
-              <Link 
-                to="/events" 
-                state={{ defaultTab: 'past' }}
-                className="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-primary hover:text-[#d4af37] transition-colors"
-              >
-                <span className="material-symbols-outlined text-sm">arrow_back</span>
-                Return to Events
-              </Link>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-center border-collapse">
-                <thead>
-                  <tr className="bg-surface-container/40 border-b border-outline-variant/10 text-[10px] font-mono font-bold uppercase tracking-wider text-on-surface-variant/80">
-                    <th className="py-4 px-6 text-center w-28">Rank</th>
-                    <th className="py-4 px-6 text-center">Name</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/5">
-                  {standings.map((row, idx) => {
-                    const isPodium = idx < 3;
-                    const podiumColors = [
-                      'text-[#ffd700] bg-[#ffd700]/10 border-[#ffd700]/20', // Gold
-                      'text-[#c0c0c0] bg-[#c0c0c0]/10 border-[#c0c0c0]/20', // Silver
-                      'text-[#cd7f32] bg-[#cd7f32]/10 border-[#cd7f32]/20'  // Bronze
-                    ];
-                    
-                    return (
-                      <tr key={idx} className="hover:bg-surface-container-high/20 transition-colors">
-                        <td className="py-4 px-6 text-center">
-                          {isPodium ? (
-                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full border text-sm font-serif font-bold ${podiumColors[idx]}`}>
-                              {row.rank}
-                            </span>
-                          ) : (
-                            <span className="text-sm font-mono text-on-surface-variant/80">{row.rank}</span>
-                          )}
-                        </td>
-                        <td className="py-4 px-6 text-center text-base font-semibold text-on-surface tracking-wide">
-                          {row.name}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
           </motion.div>
         )}
 
