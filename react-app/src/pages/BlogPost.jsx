@@ -107,13 +107,22 @@ const BlogPost = () => {
         body: formData
       });
 
-      if (!response.ok) throw new Error("Upload failed");
+      if (response.status === 401) {
+        alert("Session expired or unauthorized. Please log in again.");
+        if (authContext?.logout) authContext.logout();
+        return;
+      }
+
+      if (!response.ok) {
+        const resData = await response.json().catch(() => ({}));
+        throw new Error(resData.error || "Upload failed");
+      }
 
       const data = await response.json();
       setEditCover(data.image_url);
     } catch (err) {
       console.error(err);
-      alert("Error uploading image to server.");
+      alert(err.message || "Error uploading image to server.");
     }
   };
 

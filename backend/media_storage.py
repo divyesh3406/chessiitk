@@ -64,9 +64,11 @@ def _gcs_public_base(bucket_name):
 def save_uploaded_image(upload):
     extension = _validated_extension(upload)
     filename = f"{uuid.uuid4().hex}.{extension}"
-    backend = os.environ.get("MEDIA_STORAGE_BACKEND", "gcs").strip().lower()
+    backend = os.environ.get("MEDIA_STORAGE_BACKEND", "").strip().lower()
+    bucket_name = (os.environ.get("GCS_UPLOAD_BUCKET") or "").strip()
 
-    if backend == "local":
+    # Fall back to local file storage if MEDIA_STORAGE_BACKEND is 'local' or GCS_UPLOAD_BUCKET is missing
+    if backend == "local" or not bucket_name:
         upload_directory = _local_upload_directory()
         upload_directory.mkdir(parents=True, exist_ok=True)
         upload.save(upload_directory / filename)
@@ -74,10 +76,6 @@ def save_uploaded_image(upload):
 
     if backend != "gcs":
         raise MediaConfigurationError("MEDIA_STORAGE_BACKEND must be 'gcs' or 'local'.")
-
-    bucket_name = (os.environ.get("GCS_UPLOAD_BUCKET") or "").strip()
-    if not bucket_name:
-        raise MediaConfigurationError("GCS_UPLOAD_BUCKET must be configured for production uploads.")
 
     from google.cloud import storage
 

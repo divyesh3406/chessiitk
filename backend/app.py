@@ -219,7 +219,7 @@ def token_required(f):
                 return jsonify({'error': 'Token has been revoked. Please log in again.'}), 401
             role_to_check = data.get('role')
             
-            if role_to_check != 'secretary':
+            if role_to_check not in ('secretary', 'admin'):
                 return jsonify({'error': 'Admin privileges required.'}), 403
                 
         except jwt.ExpiredSignatureError:
