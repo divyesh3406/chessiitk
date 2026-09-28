@@ -16,7 +16,7 @@ from security_controls import consume_rate_limit, get_client_address, verify_rec
 auth_bp = Blueprint('auth', __name__)
 
 EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-IITK_EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+[0-9]{2}@iitk\.ac\.in$', re.IGNORECASE)
+IITK_EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@iitk\.ac\.in$', re.IGNORECASE)
 CHESS_USERNAME_REGEX = re.compile(r'^[a-zA-Z0-9_-]{1,50}$')
 MAX_OTP_ATTEMPTS = 5
 

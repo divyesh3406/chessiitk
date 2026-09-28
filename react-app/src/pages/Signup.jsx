@@ -63,20 +63,9 @@ const Signup = () => {
     }
 
     const isIITK = (m) => m.toLowerCase().endsWith('@iitk.ac.in');
-    const isValidIITK = (m) => /\d{2}@iitk\.ac\.in$/i.test(m.trim());
 
     if (!isIITK(email)) {
-      setError("Please include @iitk.ac.in in your IITK email address.");
-      setIsLoading(false);
-      return;
-    }
-    if (!isValidIITK(email)) {
-      setError("IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in).");
-      setIsLoading(false);
-      return;
-    }
-    if (isIITK(secondaryEmail) && !isValidIITK(secondaryEmail)) {
-      setError("Secondary IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in).");
+      setError("Please use a valid @iitk.ac.in email address.");
       setIsLoading(false);
       return;
     }
@@ -194,11 +183,7 @@ const Signup = () => {
       return;
     }
 
-    if (isIITK(email) && !isValidIITK(email)) {
-      setError("IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in).");
-      setIsLoading(false);
-      return;
-    }
+
 
     try {
       const recaptchaToken = await getRecaptchaToken('alumni_request');

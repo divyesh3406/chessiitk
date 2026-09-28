@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { globalCache } from '../utils/cache';
 import Footer from '../components/Footer';
 import { API_BASE_URL } from '../config';
+import grandSwissPoster from '../assets/grand_swiss_poster.jpg';
 
 const Events = () => {
   // 1. Pull auth context and token for admin verification and API calls
@@ -98,6 +99,17 @@ const Events = () => {
   const [grandSwissRegSuccess, setGrandSwissRegSuccess] = useState(false);
   const [isSubmittingGrandSwiss, setIsSubmittingGrandSwiss] = useState(false);
   const [isFetchingGrandSwissProfile, setIsFetchingGrandSwissProfile] = useState(false);
+
+  useEffect(() => {
+    if (isGrandSwissModalOpen || isLolModalOpen || isFclModalOpen || isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isGrandSwissModalOpen, isLolModalOpen, isFclModalOpen, isModalOpen]);
 
   // Check LoL registration status
   useEffect(() => {
@@ -483,6 +495,7 @@ const Events = () => {
        shortDesc: dbEvent.short_description,
        fullDesc: dbEvent.event_briefing,
        register_link: dbEvent.register_link,
+       imageUrl: dbEvent.image_url,
        schedule: [] 
     }));
   };
@@ -648,6 +661,7 @@ const Events = () => {
              shortDesc: dbEvent.short_description,
              fullDesc: dbEvent.event_briefing,
              register_link: dbEvent.register_link,
+             imageUrl: dbEvent.image_url,
              schedule: [] 
           }));
           formattedDbEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -804,9 +818,20 @@ const Events = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
               <div className="lg:col-span-2">
                 <h4 className="text-xs font-bold tracking-widest text-primary mb-4 uppercase font-label">Event Briefing</h4>
-                <p className="text-on-surface-variant leading-relaxed whitespace-pre-line text-sm sm:text-base font-light">
-                  {event.fullDesc}
-                </p>
+                <div className="flex flex-col sm:flex-row gap-6 items-start">
+                  {(event.imageUrl || event.title?.toLowerCase()?.includes('grand swiss')) && (
+                    <div className="w-full sm:w-48 shrink-0 rounded-xl overflow-hidden border border-outline-variant/20 shadow-lg bg-zinc-950">
+                      <img 
+                        src={event.imageUrl || grandSwissPoster} 
+                        alt={event.title} 
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  <p className="text-on-surface-variant leading-relaxed whitespace-pre-line text-sm sm:text-base font-light flex-1 min-w-0">
+                    {event.fullDesc}
+                  </p>
+                </div>
               </div>
               
               <div className="space-y-6">

@@ -6,6 +6,29 @@ import { globalCache } from '../utils/cache';
 import Navbar from '../components/Navbar';
 import ScrollToTopButton from '../components/ScrollToTopButton';
 import { API_BASE_URL } from '../config';
+import grandSwissPoster from '../assets/grand_swiss_poster.jpg';
+
+const renderFormattedText = (text) => {
+  if (!text) return null;
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, i) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a 
+          key={i} 
+          href={part} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="text-primary underline underline-offset-2 hover:text-primary-container font-semibold transition-colors break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
 
 const formatEventDateTime = (dateString, timeString) => {
   if (!dateString) return "";
@@ -119,6 +142,20 @@ const MainLayout = ({ children }) => {
     return () => window.removeEventListener('open-event-details-modal', handleOpenModal);
   }, []);
 
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      window.dispatchEvent(new CustomEvent('modal-state-change', { detail: { open: true } }));
+    } else {
+      document.body.style.overflow = '';
+      window.dispatchEvent(new CustomEvent('modal-state-change', { detail: { open: false } }));
+    }
+    return () => {
+      document.body.style.overflow = '';
+      window.dispatchEvent(new CustomEvent('modal-state-change', { detail: { open: false } }));
+    };
+  }, [isModalOpen]);
+
   return (
     <div className="min-h-screen bg-surface text-on-surface">
       <Navbar />
@@ -213,15 +250,28 @@ const MainLayout = ({ children }) => {
             </div>
 
             {/* Modal Scrollable Content */}
-            <div className="p-8 md:p-10 overflow-y-auto space-y-6 flex-1 disable-scrollbar">
-              {/* Event Brief */}
-              <div>
-                <h4 className="mb-2 text-[10px] font-label uppercase tracking-widest text-primary font-bold">
-                  Event Briefing
-                </h4>
-                <p className="text-sm leading-relaxed text-on-surface-variant">
-                  {nextEvent.fullDesc || nextEvent.shortDesc}
-                </p>
+            <div 
+              className="p-8 md:p-10 overflow-y-auto space-y-6 flex-1 disable-scrollbar"
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+            >
+              {/* Event Briefing with Poster */}
+              <div className="flex flex-col md:flex-row gap-6 items-start">
+                <div className="w-full md:w-64 lg:w-72 shrink-0 rounded-2xl overflow-hidden border border-outline-variant/20 shadow-xl bg-zinc-950">
+                  <img 
+                    src={nextEvent.imageUrl || grandSwissPoster} 
+                    alt={nextEvent.title} 
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 space-y-3">
+                  <h4 className="text-[10px] font-label uppercase tracking-widest text-primary font-bold">
+                    Event Briefing
+                  </h4>
+                  <div className="text-sm leading-relaxed text-on-surface-variant/90 whitespace-pre-line font-body font-light">
+                    {renderFormattedText(nextEvent.fullDesc || nextEvent.shortDesc)}
+                  </div>
+                </div>
               </div>
 
               {/* Event Overview Info Grid */}

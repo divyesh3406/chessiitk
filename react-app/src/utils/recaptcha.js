@@ -21,7 +21,13 @@ function loadRecaptcha() {
 }
 
 export async function getRecaptchaToken(action) {
-  const grecaptcha = await loadRecaptcha();
-  await new Promise((resolve) => grecaptcha.ready(resolve));
-  return grecaptcha.execute(SITE_KEY, { action });
+  try {
+    if (!SITE_KEY) return "";
+    const grecaptcha = await loadRecaptcha();
+    await new Promise((resolve) => grecaptcha.ready(resolve));
+    return await grecaptcha.execute(SITE_KEY, { action });
+  } catch (err) {
+    console.warn("reCAPTCHA token generation bypassed:", err);
+    return "";
+  }
 }

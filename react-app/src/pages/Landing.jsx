@@ -11,9 +11,17 @@ import tanmayImg from "../assets/exCoordinators/tanmay.jpg";
 import akshatImg from "../assets/exCoordinators/akshat.png";
 import kushagraImg from "../assets/exCoordinators/kushagra.jpg";
 import pulkitImg from "../assets/exCoordinators/pulkit.jpg";
+import grandSwissPoster from "../assets/grand_swiss_poster.jpg";
 import { API_BASE_URL } from '../config';
 import { globalCache } from '../utils/cache';
 import FloatingChessPieces from '../components/FloatingChessPieces';
+
+const getExcerpt = (text, maxLength = 260) => {
+  if (!text) return '';
+  const cleaned = text.replace(/\n+/g, ' ').trim();
+  if (cleaned.length <= maxLength) return cleaned;
+  return cleaned.substring(0, maxLength).trim() + '...';
+};
 
 const AnimatedCounter = ({ value, duration = 1200, trigger }) => {
   const [count, setCount] = useState(0);
@@ -92,7 +100,18 @@ const Landing = () => {
 
     rafId = requestAnimationFrame(raf);
 
+    const handleModalState = (e) => {
+      if (e.detail?.open) {
+        lenis.stop();
+      } else {
+        lenis.start();
+      }
+    };
+
+    window.addEventListener('modal-state-change', handleModalState);
+
     return () => {
+      window.removeEventListener('modal-state-change', handleModalState);
       cancelAnimationFrame(rafId);
       lenis.destroy();
     };
@@ -180,8 +199,10 @@ const Landing = () => {
           endDate: evt.event_end_date,
           tag: evt.event_type,
           shortDesc: evt.short_description,
+          fullDesc: evt.event_briefing,
           location: evt.location,
-          format: evt.format
+          format: evt.format,
+          imageUrl: evt.image_url
         })).filter(evt => {
           const dateStr = evt.endDate && evt.endDate !== 'null' && evt.endDate !== 'None' ? evt.endDate : evt.date;
           if (!dateStr) return false;
@@ -439,18 +460,29 @@ const Landing = () => {
             {nextEvent ? (
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent('open-event-details-modal'))}
-                className="w-full text-left rounded-3xl border border-[#4d4635]/30 bg-gradient-to-br from-surface-container-high/90 to-surface-container/60 backdrop-blur-xl hover:border-primary/50 hover:shadow-[0_0_50px_rgba(242,202,80,0.2)] transition-all duration-700 flex flex-col md:flex-row overflow-hidden group cursor-pointer relative shadow-2xl shadow-black/80"
+                className="w-full text-left rounded-3xl border border-[#4d4635]/40 bg-gradient-to-br from-surface-container-high/90 to-surface-container/70 backdrop-blur-xl hover:border-primary/60 hover:shadow-[0_0_50px_rgba(242,202,80,0.25)] transition-all duration-700 flex flex-col md:flex-row overflow-hidden group cursor-pointer relative shadow-2xl shadow-black/80"
               >
                 {/* Smooth Golden Hover Fill Overlay */}
                 <div className="absolute inset-0 bg-[#f2ca50] opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out z-0 pointer-events-none"></div>
 
-
+                {/* Event Poster Image Beside Event Details */}
+                <div className="w-full md:w-72 lg:w-80 relative aspect-[4/5] md:aspect-auto shrink-0 bg-zinc-950 border-b md:border-b-0 md:border-r border-outline-variant/15 z-10 overflow-hidden min-h-[220px]">
+                  <img 
+                    src={nextEvent.imageUrl || grandSwissPoster} 
+                    alt={nextEvent.title} 
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80 pointer-events-none"></div>
+                  <div className="absolute bottom-3 left-3 bg-primary text-[#3c2f00] font-label text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md z-10">
+                    Official Event Poster
+                  </div>
+                </div>
 
                 {/* Event Details */}
                 <div className="p-6 sm:p-8 flex flex-col justify-between flex-1 min-w-0 relative z-10">
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-[#d4af37]/70 group-hover:text-[#3c2f00]/70 transition-colors duration-700">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-[0.2em] text-[#d4af37]/80 group-hover:text-[#3c2f00]/80 transition-colors duration-700">
                         Spotlight Event
                       </span>
                       <div className="flex items-center gap-1.5 text-xs font-bold text-primary group-hover:text-[#3c2f00] transition-colors duration-700">
@@ -465,8 +497,8 @@ const Landing = () => {
                       {nextEvent.title}
                     </h3>
 
-                    <p className="text-xs sm:text-sm text-on-surface-variant/80 group-hover:text-[#251a00]/90 transition-colors duration-700 line-clamp-3 leading-relaxed font-body">
-                      {nextEvent.shortDesc}
+                    <p className="text-xs sm:text-sm text-on-surface-variant/90 group-hover:text-[#251a00] transition-colors duration-700 leading-relaxed font-body font-light">
+                      {getExcerpt(nextEvent.fullDesc || nextEvent.shortDesc, 280)}
                     </p>
                   </div>
 

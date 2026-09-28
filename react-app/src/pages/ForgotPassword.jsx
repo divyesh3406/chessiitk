@@ -22,12 +22,18 @@ const ForgotPassword = () => {
     setSuccess('');
     setIsLoading(true);
 
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const recaptchaToken = await getRecaptchaToken('forgot_password');
       const response = await fetch(`${API_BASE_URL}/api/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, recaptcha_token: recaptchaToken }),
+        body: JSON.stringify({ email: email.trim(), recaptcha_token: recaptchaToken }),
       });
 
       const data = await response.json();
@@ -56,8 +62,8 @@ const ForgotPassword = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          email: email, 
-          otp: otp,
+          email: email.trim(), 
+          otp: otp.trim(),
           new_password: newPassword
         }),
       });
