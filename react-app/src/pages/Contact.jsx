@@ -20,6 +20,7 @@ import kratagyaImg from "../assets/secretaries/kratagya.jpg";
 
 import mayankBhakhandImg from "../assets/secretaries/mayank_bhakhand.jpeg";
 import mayankGautamImg from "../assets/secretaries/mayank_gautam.webp";
+import miteshJethawaImg from "../assets/secretaries/mitesh.jpg";
 import nishantImg from "../assets/secretaries/nishant.jpg";
 import piyushImg from "../assets/secretaries/piyush.jpg";
 import prajwalImg from "../assets/secretaries/prajwal.jpeg";
@@ -218,6 +219,16 @@ const SECRETARIES = [
     email: "gmayank25@iitk.ac.in",
     instagram: "https://www.instagram.com/mayank.iitk?igsh=eWF6engyejNhZHg3",
     linkedin: "https://www.linkedin.com/in/mayank-gautam-48b844376?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+  },
+  {
+    id: "sec-18",
+    name: "Mitesh Jitendra Jethawa",
+    role: "Secretary",
+    funnyDescription: `"Playing the long game."`,
+    image: miteshJethawaImg,
+    email: "jethawa25@iitk.ac.in",
+    instagram: "https://www.instagram.com/jjmitesh_19",
+    linkedin: "https://www.linkedin.com/in/miteshjethawa"
   },
   {
     id: "sec-19",
