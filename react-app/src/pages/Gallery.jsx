@@ -418,7 +418,7 @@ const DEFAULT_ALBUMS = [
     category: 'Tournaments',
     title: 'IITK Chess Championship 2026 Winner Spandan Pati',
     tag: 'Tournament Showcase',
-    date: '2026',
+    date: 'August 2026',
     coverImage: 'championship-winner',
     description: 'Celebrating the IITK Chess Championship Winner!'
   }
@@ -551,7 +551,7 @@ const Gallery = () => {
   const { isLoggedIn, token } = useAuth();
 
   const [albums, setAlbums] = useState(() => {
-    const saved = localStorage.getItem('gallery_albums_v4');
+    const saved = localStorage.getItem('gallery_albums_v5');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -561,7 +561,7 @@ const Gallery = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('gallery_albums_v4', JSON.stringify(albums));
+    localStorage.setItem('gallery_albums_v5', JSON.stringify(albums));
   }, [albums]);
 
   const [editingAlbum, setEditingAlbum] = useState(null);
