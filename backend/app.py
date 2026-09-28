@@ -64,21 +64,12 @@ def revoked_or_stale_token(_jwt_header, jwt_payload):
 # Limit maximum upload size to 16MB to prevent memory exhaustion / DoS
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Allow your local React app and production site to connect
+# Allow local React app, staging, and production domains to connect
 CORS(
     app,
-    origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://localhost:5175",
-        "http://localhost:5176",
-        "https://chess-club-iitk-myfork.vercel.app",
-        "https://chess-club-iitk-w7u5.vercel.app",
-        "https://www.chessclubiitk.in",
-        "https://chessclubiitk.in"
-    ]
+    resources={r"/*": {"origins": "*"}},
+    supports_credentials=True
 )
-##test
 
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(blogs_bp, url_prefix='/api')
@@ -89,6 +80,15 @@ app.register_blueprint(admin_bp)
 def before_request():
     # Record the high-precision start time when the request hits the server
     g.start_time = time.perf_counter()
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        origin = request.headers.get('Origin')
+        if origin:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Credentials'] = 'true'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept'
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        return response
 
 @app.after_request
 def after_request(response):
@@ -97,6 +97,13 @@ def after_request(response):
         elapsed_ms = (time.perf_counter() - g.start_time) * 1000
         response.headers['X-Response-Time'] = f"{elapsed_ms:.2f}ms"
     
+    origin = request.headers.get('Origin')
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With, Accept'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+
     # Standard Security Headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'

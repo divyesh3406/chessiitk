@@ -76,12 +76,21 @@ def send_custom_email(receiver_email, subject, body):
             "text": body
         }
         try:
-            response = requests.post(url, json=payload, headers=headers)
+            response = requests.post(url, json=payload, headers=headers, timeout=5)
             if response.status_code in [200, 201]:
-                print(f"Email successfully dispatched to {receiver_email} using Resend API")
+                print(f"Email successfully dispatched to {receiver_email} using Resend API ({resend_from})")
                 return True
             else:
                 print(f"Resend dispatch failure ({response.status_code}): {response.text}")
+                # Fallback to default Resend onboarding sender if custom domain is not yet verified
+                if "onboarding@resend.dev" not in resend_from:
+                    fallback_payload = {**payload, "from": "Chess Club IITK <onboarding@resend.dev>"}
+                    fallback_res = requests.post(url, json=fallback_payload, headers=headers, timeout=5)
+                    if fallback_res.status_code in [200, 201]:
+                        print(f"Email successfully dispatched to {receiver_email} using Resend API (onboarding fallback)")
+                        return True
+                    else:
+                        print(f"Resend onboarding fallback failure ({fallback_res.status_code}): {fallback_res.text}")
         except Exception as e:
             print(f"Resend API connection error: {e}")
 
@@ -116,15 +125,25 @@ def send_custom_email(receiver_email, subject, body):
         msg['Subject'] = subject
         msg['From'] = sender_email
         msg['To'] = receiver_email
+        
+        # Try TLS port 587 first, then SSL port 465, with short 4s timeout so it never hangs on GCP VM
         try:
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            with smtplib.SMTP('smtp.gmail.com', 587, timeout=4) as server:
+                server.starttls()
                 server.login(sender_email, sender_password)
                 server.send_message(msg)
-            print(f"Email successfully dispatched to {receiver_email} using {sender_email}")
+            print(f"Email successfully dispatched to {receiver_email} using {sender_email} (port 587)")
             return True
-        except Exception as e:
-            last_error = e
-            print(f"Email Dispatch Failure using {sender_email}: {e}. Retrying with next backup...")
+        except Exception as e1:
+            try:
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=4) as server:
+                    server.login(sender_email, sender_password)
+                    server.send_message(msg)
+                print(f"Email successfully dispatched to {receiver_email} using {sender_email} (port 465)")
+                return True
+            except Exception as e2:
+                last_error = e2
+                print(f"Email Dispatch Failure using {sender_email} (587: {e1}, 465: {e2}). Retrying with next backup...")
 
     # Log to terminal in development if all SMTP servers failed
     if is_debug:
@@ -150,13 +169,13 @@ def generate_otp():
     chess_username = (data.get('chess_username') or '').strip()
 
     if not primary_email or not IITK_EMAIL_REGEX.match(primary_email):
-        return jsonify({"error": "You must use a valid @iitk.ac.in email address with your 2-digit year identifier (e.g. username25@iitk.ac.in)."}), 400
+        return jsonify({"error": "You must use a valid @iitk.ac.in email address."}), 400
 
     if not secondary_email or not EMAIL_REGEX.match(secondary_email):
         return jsonify({"error": "A valid secondary recovery email address is required."}), 400
 
     if secondary_email.lower().endswith('@iitk.ac.in') and not IITK_EMAIL_REGEX.match(secondary_email):
-        return jsonify({"error": "Secondary IITK email must contain your 2-digit year identifier before @iitk.ac.in (e.g. username25@iitk.ac.in)."}), 400
+        return jsonify({"error": "Secondary IITK email must be a valid @iitk.ac.in address."}), 400
 
     if primary_email.lower() == secondary_email.lower():
         return jsonify({"error": "Secondary email must be different from your primary IITK email."}), 400
@@ -274,7 +293,7 @@ def verify_and_register():
         return jsonify({"error": "A valid secondary recovery email address is required."}), 400
 
     if secondary_email.lower().endswith('@iitk.ac.in') and not IITK_EMAIL_REGEX.match(secondary_email):
-        return jsonify({"error": "Secondary IITK email must contain your 2-digit year identifier before @iitk.ac.in."}), 400
+        return jsonify({"error": "Secondary IITK email must be a valid @iitk.ac.in address."}), 400
 
     if email.lower() == secondary_email.lower():
         return jsonify({"error": "Secondary email must be different from your primary IITK email."}), 400
