@@ -83,6 +83,18 @@ const CHAMPIONSHIP_2026_KEYS = Object.keys(CHAMPIONSHIP_2026_GLOB).sort((a, b) =
 });
 const CHAMPIONSHIP_2026_PHOTOS = CHAMPIONSHIP_2026_KEYS.map(key => CHAMPIONSHIP_2026_GLOB[key].default);
 
+// Dynamically import all images in the Championship Winner folder using Vite's glob import
+const CHAMPIONSHIP_WINNER_GLOB = import.meta.glob('../Gallery/Championship Winner/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+const CHAMPIONSHIP_WINNER_KEYS = Object.keys(CHAMPIONSHIP_WINNER_GLOB).sort((a, b) => {
+  const matchA = a.match(/\/(\d+)\.\w+$/);
+  const matchB = b.match(/\/(\d+)\.\w+$/);
+  if (matchA && matchB) {
+    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+  }
+  return a.localeCompare(b);
+});
+const CHAMPIONSHIP_WINNER_PHOTOS = CHAMPIONSHIP_WINNER_KEYS.map(key => CHAMPIONSHIP_WINNER_GLOB[key].default);
+
 // Dynamically import other casual photos using Vite's glob import
 const OTHER_IMAGES_GLOB = import.meta.glob('../Gallery/OTHER PHOTOS/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
 const OTHER_PHOTOS = Object.values(OTHER_IMAGES_GLOB).map(module => module.default);
@@ -209,7 +221,7 @@ const CURRENT_YEAR_EVENTS = [
   {
     id: 'current-street-chess-2',
     category: 'Socials',
-    title: 'Street Chess 2026',
+    title: 'Street Chess 2',
     tag: 'Street Showcase',
     coverImage: STREET_CHESS_2_PHOTOS.length > 0 ? STREET_CHESS_2_PHOTOS[0] : workshopImg,
     photos: STREET_CHESS_2_PHOTOS,
@@ -359,7 +371,7 @@ const DEFAULT_ALBUMS = [
   {
     id: 'street-chess-2',
     category: 'Socials',
-    title: 'Street Chess 2026',
+    title: 'Street Chess 2',
     tag: 'Street Showcase',
     date: 'Aug 14, 2026',
     coverImage: 'street-chess-2',
@@ -400,6 +412,15 @@ const DEFAULT_ALBUMS = [
     date: '',
     coverImage: 'championship-2026',
     description: 'The crowning event of the IITK Chess season. The ultimate battle for the title of campus champion.'
+  },
+  {
+    id: 'championship-winner',
+    category: 'Tournaments',
+    title: 'IITK Chess Championship 2026 Winner Spandan Pati',
+    tag: 'Tournament Showcase',
+    date: '2026',
+    coverImage: 'championship-winner',
+    description: 'Celebrating the IITK Chess Championship Winner!'
   }
 ];
 
@@ -439,6 +460,11 @@ const resolveAlbumPhotos = (key) => {
       return {
         photos: CHAMPIONSHIP_2026_PHOTOS,
         coverImage: CHAMPIONSHIP_2026_PHOTOS.length > 0 ? CHAMPIONSHIP_2026_PHOTOS[0] : workshopImg
+      };
+    case 'championship-winner':
+      return {
+        photos: CHAMPIONSHIP_WINNER_PHOTOS,
+        coverImage: CHAMPIONSHIP_WINNER_PHOTOS.length > 0 ? CHAMPIONSHIP_WINNER_PHOTOS[0] : workshopImg
       };
     default:
       return { photos: [], coverImage: workshopImg };
@@ -525,13 +551,17 @@ const Gallery = () => {
   const { isLoggedIn, token } = useAuth();
 
   const [albums, setAlbums] = useState(() => {
-    // Clear legacy local storage albums to prevent caching outdated title parameters (e.g. 'Street Chess 2')
-    localStorage.removeItem('gallery_albums_v2');
+    const saved = localStorage.getItem('gallery_albums_v4');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
     return DEFAULT_ALBUMS;
   });
 
   useEffect(() => {
-    localStorage.setItem('gallery_albums_v2', JSON.stringify(albums));
+    localStorage.setItem('gallery_albums_v4', JSON.stringify(albums));
   }, [albums]);
 
   const [editingAlbum, setEditingAlbum] = useState(null);
@@ -979,7 +1009,7 @@ const Gallery = () => {
       <header className="mb-8 md:mb-10 pt-4 sm:pt-6 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-outline-variant/10 pb-8">
         <div className="max-w-3xl">
           <h1 className="text-4xl font-serif leading-tight text-on-surface sm:text-5xl">
-            House of Memories
+            Gallery
           </h1>
           <p className="mt-3 text-sm font-light leading-relaxed text-on-surface-variant/80 sm:text-base">
             Photos from our matches, workshops, and meetups.
