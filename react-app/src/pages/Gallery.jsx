@@ -83,17 +83,10 @@ const CHAMPIONSHIP_2026_KEYS = Object.keys(CHAMPIONSHIP_2026_GLOB).sort((a, b) =
 });
 const CHAMPIONSHIP_2026_PHOTOS = CHAMPIONSHIP_2026_KEYS.map(key => CHAMPIONSHIP_2026_GLOB[key].default);
 
-// Dynamically import all images in the Championship Winner folder using Vite's glob import
-const CHAMPIONSHIP_WINNER_GLOB = import.meta.glob('../Gallery/Championship Winner/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
-const CHAMPIONSHIP_WINNER_KEYS = Object.keys(CHAMPIONSHIP_WINNER_GLOB).sort((a, b) => {
-  const matchA = a.match(/\/(\d+)\.\w+$/);
-  const matchB = b.match(/\/(\d+)\.\w+$/);
-  if (matchA && matchB) {
-    return parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
-  }
-  return a.localeCompare(b);
-});
-const CHAMPIONSHIP_WINNER_PHOTOS = CHAMPIONSHIP_WINNER_KEYS.map(key => CHAMPIONSHIP_WINNER_GLOB[key].default);
+// Dynamically import all images in the FCL 2026 folder using Vite's glob import
+const FCL_2026_GLOB = import.meta.glob('../Gallery/FCL 2026/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+const FCL_2026_KEYS = Object.keys(FCL_2026_GLOB).sort((a, b) => a.localeCompare(b));
+const FCL_2026_PHOTOS = FCL_2026_KEYS.map(key => FCL_2026_GLOB[key].default);
 
 // Dynamically import other casual photos using Vite's glob import
 const OTHER_IMAGES_GLOB = import.meta.glob('../Gallery/OTHER PHOTOS/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
@@ -414,13 +407,13 @@ const DEFAULT_ALBUMS = [
     description: 'The crowning event of the IITK Chess season. The ultimate battle for the title of campus champion.'
   },
   {
-    id: 'championship-winner',
+    id: 'freshers-chess-league-2026',
     category: 'Tournaments',
-    title: 'IITK Chess Championship 2026 Winner Spandan Pati',
+    title: "Freshers' Chess League 2026",
     tag: 'Tournament Showcase',
     date: 'August 2026',
-    coverImage: 'championship-winner',
-    description: 'Celebrating the IITK Chess Championship Winner!'
+    coverImage: 'freshers-chess-league-2026',
+    description: 'The ultimate showdown among the freshers.'
   }
 ];
 
@@ -461,10 +454,10 @@ const resolveAlbumPhotos = (key) => {
         photos: CHAMPIONSHIP_2026_PHOTOS,
         coverImage: CHAMPIONSHIP_2026_PHOTOS.length > 0 ? CHAMPIONSHIP_2026_PHOTOS[0] : workshopImg
       };
-    case 'championship-winner':
+    case 'freshers-chess-league-2026':
       return {
-        photos: CHAMPIONSHIP_WINNER_PHOTOS,
-        coverImage: CHAMPIONSHIP_WINNER_PHOTOS.length > 0 ? CHAMPIONSHIP_WINNER_PHOTOS[0] : workshopImg
+        photos: FCL_2026_PHOTOS,
+        coverImage: FCL_2026_PHOTOS.length > 0 ? FCL_2026_PHOTOS[0] : workshopImg
       };
     default:
       return { photos: [], coverImage: workshopImg };
@@ -551,7 +544,7 @@ const Gallery = () => {
   const { isLoggedIn, token } = useAuth();
 
   const [albums, setAlbums] = useState(() => {
-    const saved = localStorage.getItem('gallery_albums_v5');
+    const saved = localStorage.getItem('gallery_albums_v7');
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -561,7 +554,7 @@ const Gallery = () => {
   });
 
   useEffect(() => {
-    localStorage.setItem('gallery_albums_v5', JSON.stringify(albums));
+    localStorage.setItem('gallery_albums_v7', JSON.stringify(albums));
   }, [albums]);
 
   const [editingAlbum, setEditingAlbum] = useState(null);

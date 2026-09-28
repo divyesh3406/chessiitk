@@ -13,7 +13,6 @@ import anantImg from "../assets/secretaries/anant.jpeg";
 import arhamImg from "../assets/secretaries/arham.jpeg";
 import arushImg from "../assets/secretaries/arush.jpg";
 import aryanImg from "../assets/secretaries/aryan.jpeg";
-import chaitanyaImg from "../assets/secretaries/chaitanya.jpg";
 import divyeshImg from "../assets/secretaries/divyesh.jpeg";
 import furzaanImg from "../assets/secretaries/furzaan.png";
 import hariomImg from "../assets/secretaries/hariom.jpg";
@@ -27,7 +26,6 @@ import prajwalImg from "../assets/secretaries/prajwal.jpeg";
 import pratikImg from "../assets/secretaries/pratik.jpg";
 import swayamImg from "../assets/secretaries/swayam.JPG";
 import siddhantImg from "../assets/secretaries/siddhant.jpg";
-import shaoniImg from "../assets/secretaries/shaoni.jpg";
 import dipinImg from "../assets/secretaries/dipin.jpg";
 import lakshyaImg from "../assets/secretaries/lakshya.jpg";
 import Footer from '../components/Footer';
@@ -162,16 +160,6 @@ const SECRETARIES = [
   },
 
   {
-    id: "sec-8",
-    name: "Chaitanya Malhotra",
-    role: "Secretary",
-    funnyDescription: `"Everything was satisfying until a bishop ruined my smoothered mate :-("`,
-    image: chaitanyaImg,
-    email: "cmalhotra25@iitk.ac.in",
-    instagram: "https://www.instagram.com/chetta_iitk_1121?igsh=MTBiZTJ6aW83dHRhNw==",
-    linkedin: "https://www.linkedin.com/in/chaitanya-malhotra-500ba8376?utm_source=share_via&utm_content=profile&utm_medium=member_android"
-  },
-  {
     id: "sec-9",
     name: "Dipin Pandey",
     role: "Secretary",
@@ -270,16 +258,6 @@ const SECRETARIES = [
     email: "pratikd24@iitk.ac.in",
     instagram: "https://www.instagram.com/prattsss__/",
     linkedin: "https://www.linkedin.com/in/pratik-dhanuka-7789023b5/"
-  },
-  {
-    id: "sec-23",
-    name: "Shaoni Mukherjee",
-    role: "Secretary",
-    funnyDescription: `"Life is like chess. I don't know how to play chess."`,
-    image: shaoniImg,
-    email: "shaonim24@iitk.ac.in",
-    instagram: "https://www.instagram.com/shaoni_mukherjee/",
-    linkedin: "https://www.linkedin.com/in/shaoni-mukherjee/"
   },
   {
     id: "sec-24",

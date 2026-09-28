@@ -30,31 +30,6 @@ const renderFormattedText = (text) => {
   });
 };
 
-const formatEventDateTime = (dateString, timeString) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString; 
-
-  // Format ONLY the date part to Indian Standard Time
-  const formattedDate = date.toLocaleDateString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric'
-  });
-
-  // Check if time is explicitly TBA, TBD, or missing entirely
-  const isTBA = !timeString || ['TBA', 'TBD'].includes(timeString.trim().toUpperCase());
-  
-  if (isTBA) {
-    return `${formattedDate} • Time: TBA`;
-  }
-
-  // If a specific time (e.g., "6:00 PM") is provided in the database
-  return `${formattedDate} • ${timeString} IST`;
-};
-
 const MainLayout = ({ children }) => {
   const { isLoggedIn, token } = useAuth();
   const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -96,15 +71,8 @@ const MainLayout = ({ children }) => {
         });
         
         if (upcoming.length > 0) {
-          // Prioritize Fresher's Chess League for the main upcoming event modal/banner
-          const fclEvent = upcoming.find(evt => (evt.title || '').toLowerCase().includes('fresher') || (evt.title || '').toLowerCase().includes('fcl'));
-          if (fclEvent) {
-            setNextEvent(fclEvent);
-          } else {
-            const nonCandidates = upcoming.filter(evt => !(evt.title || '').toLowerCase().includes('candidate'));
-            nonCandidates.sort((a, b) => new Date(a.date) - new Date(b.date));
-            setNextEvent(nonCandidates.length > 0 ? nonCandidates[0] : upcoming[0]);
-          }
+          upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+          setNextEvent(upcoming[0]);
         }
       }
     };
@@ -181,7 +149,7 @@ const MainLayout = ({ children }) => {
                 {nextEvent.title}
               </span>
               <span className="text-[10px] text-on-surface-variant font-medium font-mono mt-0.5 leading-none">
-{formatEventDateTime(nextEvent.date, nextEvent.time)}
+                {nextEvent.date}
               </span>
             </div>
             <span className="material-symbols-outlined text-primary text-base group-hover:translate-x-0.5 transition-transform shrink-0 ml-1">
@@ -216,7 +184,7 @@ const MainLayout = ({ children }) => {
 
       {/* Event Details Modal Window */}
       {isModalOpen && nextEvent && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" data-lenis-prevent="true">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -252,6 +220,7 @@ const MainLayout = ({ children }) => {
             {/* Modal Scrollable Content */}
             <div 
               className="p-8 md:p-10 overflow-y-auto space-y-6 flex-1 disable-scrollbar"
+              data-lenis-prevent="true"
               onWheel={(e) => e.stopPropagation()}
               onTouchMove={(e) => e.stopPropagation()}
             >
@@ -364,61 +333,44 @@ const MainLayout = ({ children }) => {
                 </Link>
               </div>
 
-                {(() => {
-                  const cleanId = Number(String(nextEvent.id).replace('db-', ''));
-                  const isFclClosed = cleanId === 8 || nextEvent.title.toLowerCase().includes("fresher");
-                  const isCandidates = nextEvent.title.toLowerCase().includes("candidate");
-                  const isFide = nextEvent.title.toLowerCase().includes("fide");
-                  
-                  if (isCandidates || isFide) {
-                    return null;
-                  }
-                  
-                  if (isFclClosed) {
-                    return (
-                      <button
-                        disabled
-                        className="px-6 py-2.5 rounded-xl bg-gray-800 text-gray-500 text-xs font-bold uppercase tracking-wider border border-gray-700 cursor-not-allowed"
-                      >
-                        REGISTRATION CLOSED
-                      </button>
-                    );
-                  }
-                  
-                  if (isLoggedIn) {
-                    if (isRegisteredForLol && isLolEvent) {
-                      return (
-                        <button
-                          disabled
-                          className="px-6 py-2.5 rounded-xl bg-gray-800 text-gray-500 text-xs font-bold uppercase tracking-wider border border-gray-700 cursor-not-allowed"
-                        >
-                          REGISTERED ✓
-                        </button>
-                      );
-                    } else {
-                      return (
-                        <Link
-                          to="/events"
-                          state={isLolEvent ? { scrollToEventId: nextEvent.id, openRegisterLol: true } : { scrollToEventId: nextEvent.id, openRegisterForEventId: nextEvent.id }}
-                          onClick={() => setIsModalOpen(false)}
-                          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
-                        >
-                          Register Now
-                        </Link>
-                      );
-                    }
-                  } else {
-                    return (
-                      <Link
-                        to={`/login?redirect=/events&openRegisterForEventId=${nextEvent.id}`}
-                        onClick={() => setIsModalOpen(false)}
-                        className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
-                      >
-                        Login to Register
-                      </Link>
-                    );
-                  }
-                })()}
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-outline-variant/30 text-xs font-bold uppercase tracking-wider text-on-surface hover:bg-surface-container-highest transition-colors"
+                >
+                  Close
+                </button>
+                {/*
+                {isLoggedIn ? (
+                  isRegisteredForLol && isLolEvent ? (
+                    <button
+                      disabled
+                      className="px-6 py-2.5 rounded-xl bg-gray-800 text-gray-500 text-xs font-bold uppercase tracking-wider border border-gray-700 cursor-not-allowed"
+                    >
+                      REGISTERED ✓
+                    </button>
+                  ) : (
+                    <Link
+                      to={isLolEvent ? "/events" : `/events/register/${nextEvent.id}`}
+                      state={isLolEvent ? { openRegisterLol: true } : undefined}
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
+                    >
+                      Register Now
+                    </Link>
+                  )
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-xs font-bold uppercase tracking-wider text-[#3c2f00] shadow-lg transition-transform hover:scale-[1.02]"
+                  >
+                    Login to Register
+                  </Link>
+                )}
+                */}
+              </div>
             </div>
           </motion.div>
         </div>
