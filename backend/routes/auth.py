@@ -198,7 +198,7 @@ def generate_otp():
         rate_connection = get_db_connection()
         with rate_connection.cursor() as cursor:
             client_address = get_client_address(request)
-            recipient_allowed = consume_rate_limit(cursor, "signup-secondary", secondary_email, 3, 3600)
+            recipient_allowed = consume_rate_limit(cursor, "signup-secondary", secondary_email, 10, 3600)
             ip_allowed = consume_rate_limit(cursor, "signup-ip", client_address, 200, 3600)
             rate_connection.commit()
             if not recipient_allowed or not ip_allowed:
