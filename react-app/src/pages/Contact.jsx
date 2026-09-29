@@ -17,6 +17,7 @@ import divyeshImg from "../assets/secretaries/divyesh.jpeg";
 import furzaanImg from "../assets/secretaries/furzaan.png";
 import hariomImg from "../assets/secretaries/hariom.jpg";
 import kratagyaImg from "../assets/secretaries/kratagya.jpg";
+import gomatiImg from "../assets/secretaries/gomati.jpg";
 
 import mayankBhakhandImg from "../assets/secretaries/mayank_bhakhand.jpeg";
 import mayankGautamImg from "../assets/secretaries/mayank_gautam.webp";
@@ -89,6 +90,16 @@ It gets worse."`,
 ];
 
 const SECRETARIES = [
+  {
+    id: "sec-gomati",
+    name: "Gomati Vairagade",
+    role: "Secretary",
+    funnyDescription: `"I don't rush the move, I wait for the moment."`,
+    image: gomatiImg,
+    email: "gomativv25@iitk.ac.in",
+    instagram: "https://www.instagram.com/ridzzz_3007",
+    linkedin: "https://www.linkedin.com/in/gomati-vairagade-9005a6383?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+  },
   {
     id: "sec-0",
     name: "Aarush Waghmare",
