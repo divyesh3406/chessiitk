@@ -90,16 +90,7 @@ It gets worse."`,
 ];
 
 const SECRETARIES = [
-  {
-    id: "sec-gomati",
-    name: "Gomati Vairagade",
-    role: "Secretary",
-    funnyDescription: `"I don't rush the move, I wait for the moment."`,
-    image: gomatiImg,
-    email: "gomativv25@iitk.ac.in",
-    instagram: "https://www.instagram.com/ridzzz_3007",
-    linkedin: "https://www.linkedin.com/in/gomati-vairagade-9005a6383?utm_source=share_via&utm_content=profile&utm_medium=member_android"
-  },
+ 
   {
     id: "sec-0",
     name: "Aarush Waghmare",
@@ -201,8 +192,18 @@ const SECRETARIES = [
     instagram: "https://www.instagram.com/furzaan2049?igsh=MWoyZjVkMmJ6emR6eQ==",
     linkedin: "https://www.linkedin.com/in/furzaan-ullah-740604377?utm_source=share_via&utm_content=profile&utm_medium=member_android"
   },
-  {
+   {
     id: "sec-12",
+    name: "Gomati Vairagade",
+    role: "Secretary",
+    funnyDescription: `"I don't rush the move, I wait for the moment."`,
+    image: gomatiImg,
+    email: "gomativv25@iitk.ac.in",
+    instagram: "https://www.instagram.com/ridzzz_3007",
+    linkedin: "https://www.linkedin.com/in/gomati-vairagade-9005a6383?utm_source=share_via&utm_content=profile&utm_medium=member_android"
+  },
+  {
+    id: "sec-13",
     name: "Hariom Mishra",
     role: "Secretary",
     funnyDescription: `"Chess taught me patience. My clock says otherwise"`,
