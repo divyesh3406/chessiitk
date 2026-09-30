@@ -930,13 +930,7 @@ const Events = () => {
                           REGISTERED ✓
                         </button>
                       ) : (
-                        <button 
-                          onClick={handleRegisterGrandSwissClick}
-                          disabled={isFetchingGrandSwissProfile}
-                          className="block w-full text-center bg-primary text-[#3c2f00] py-3 rounded-xl font-bold hover:bg-[#d4af37] transition-colors text-xs font-label uppercase tracking-widest shadow-md shadow-primary/10"
-                        >
-                          {isFetchingGrandSwissProfile ? "LOADING PROFILE..." : "REGISTER"}
-                        </button>
+                        null
                       );
                     }
 
