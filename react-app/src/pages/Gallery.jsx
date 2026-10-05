@@ -562,14 +562,16 @@ const Gallery = () => {
   const { isLoggedIn, token } = useAuth();
 
   const [albums, setAlbums] = useState(() => {
-    const saved = localStorage.getItem('gallery_albums_v7');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {}
-    }
-    return DEFAULT_ALBUMS;
-  });
+  const saved = localStorage.getItem('gallery_albums_v7');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      const missing = DEFAULT_ALBUMS.filter(d => !parsed.some(p => p.id === d.id));
+      return [...parsed, ...missing];
+    } catch (e) {}
+  }
+  return DEFAULT_ALBUMS;
+});
 
   useEffect(() => {
     localStorage.setItem('gallery_albums_v7', JSON.stringify(albums));
