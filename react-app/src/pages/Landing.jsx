@@ -11,7 +11,6 @@ import tanmayImg from "../assets/exCoordinators/tanmay.jpg";
 import akshatImg from "../assets/exCoordinators/akshat.png";
 import kushagraImg from "../assets/exCoordinators/kushagra.jpg";
 import pulkitImg from "../assets/exCoordinators/pulkit.jpg";
-import grandSwissPoster from "../assets/grand_swiss_poster.jpg";
 import { API_BASE_URL } from '../config';
 import { globalCache } from '../utils/cache';
 import FloatingChessPieces from '../components/FloatingChessPieces';
@@ -464,19 +463,6 @@ const Landing = () => {
               >
                 {/* Smooth Golden Hover Fill Overlay */}
                 <div className="absolute inset-0 bg-[#f2ca50] opacity-0 group-hover:opacity-100 transition-opacity duration-700 ease-in-out z-0 pointer-events-none"></div>
-
-                {/* Event Poster Image Beside Event Details */}
-                <div className="w-full md:w-72 lg:w-80 relative aspect-[4/5] md:aspect-auto shrink-0 bg-zinc-950 border-b md:border-b-0 md:border-r border-outline-variant/15 z-10 overflow-hidden min-h-[220px]">
-                  <img 
-                    src={nextEvent.imageUrl || grandSwissPoster} 
-                    alt={nextEvent.title} 
-                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-80 pointer-events-none"></div>
-                  <div className="absolute bottom-3 left-3 bg-primary text-[#3c2f00] font-label text-[9px] font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md z-10">
-                    Official Event Poster
-                  </div>
-                </div>
 
                 {/* Event Details */}
                 <div className="p-6 sm:p-8 flex flex-col justify-between flex-1 min-w-0 relative z-10">
