@@ -88,6 +88,10 @@ const FCL_2026_GLOB = import.meta.glob('../Gallery/FCL 2026/*.{png,jpg,jpeg,PNG,
 const FCL_2026_KEYS = Object.keys(FCL_2026_GLOB).sort((a, b) => a.localeCompare(b));
 const FCL_2026_PHOTOS = FCL_2026_KEYS.map(key => FCL_2026_GLOB[key].default);
 
+const GRAND_SWISS_2026_GLOB = import.meta.glob('../Gallery/GS 2026/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
+const GRAND_SWISS_2026_KEYS = Object.keys(GRAND_SWISS_2026_GLOB).sort((a, b) => a.localeCompare(b));
+const GRAND_SWISS_2026_PHOTOS = GRAND_SWISS_2026_KEYS.map(key => GRAND_SWISS_2026_GLOB[key].default);
+
 // Dynamically import other casual photos using Vite's glob import
 const OTHER_IMAGES_GLOB = import.meta.glob('../Gallery/OTHER PHOTOS/*.{png,jpg,jpeg,PNG,JPG,JPEG}', { eager: true });
 const OTHER_PHOTOS = Object.values(OTHER_IMAGES_GLOB).map(module => module.default);
@@ -414,6 +418,15 @@ const DEFAULT_ALBUMS = [
     date: 'August 2026',
     coverImage: 'freshers-chess-league-2026',
     description: 'The ultimate showdown among the freshers.'
+  },
+  {
+    id: 'grand-swiss-2026',
+    category: 'Tournaments',
+    title: "IITK Grand Swiss 2026",
+    tag: 'Tournament Showcase',
+    date: 'October 2026',
+    coverImage: 'grand-swiss-2026',
+    description: 'The ultimate showdown among the freshers.'
   }
 ];
 
@@ -458,6 +471,11 @@ const resolveAlbumPhotos = (key) => {
       return {
         photos: FCL_2026_PHOTOS,
         coverImage: FCL_2026_PHOTOS.length > 0 ? FCL_2026_PHOTOS[0] : workshopImg
+      };
+    case 'grand-swiss-2026':
+      return {
+        photos: GRAND_SWISS_2026_PHOTOS,
+        coverImage: GRAND_SWISS_2026_PHOTOS.length > 0 ? GRAND_SWISS_2026_PHOTOS[0] : workshopImg
       };
     default:
       return { photos: [], coverImage: workshopImg };
@@ -544,14 +562,16 @@ const Gallery = () => {
   const { isLoggedIn, token } = useAuth();
 
   const [albums, setAlbums] = useState(() => {
-    const saved = localStorage.getItem('gallery_albums_v7');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {}
-    }
-    return DEFAULT_ALBUMS;
-  });
+  const saved = localStorage.getItem('gallery_albums_v7');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      const missing = DEFAULT_ALBUMS.filter(d => !parsed.some(p => p.id === d.id));
+      return [...parsed, ...missing];
+    } catch (e) {}
+  }
+  return DEFAULT_ALBUMS;
+});
 
   useEffect(() => {
     localStorage.setItem('gallery_albums_v7', JSON.stringify(albums));
