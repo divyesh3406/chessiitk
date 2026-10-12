@@ -6,7 +6,6 @@ import lakshImg from "../assets/coordinators/laksh.jpeg";
 import rishiImg from "../assets/coordinators/rishi.jpeg";
 import rudraImg from "../assets/coordinators/rudra.jpeg";
 import shauryaImg from "../assets/coordinators/shaurya.jpeg";
-import aarushWaghImg from "../assets/secretaries/aarush_wagh.jpg";
 import adityaImg from "../assets/secretaries/aditya.jpg";
 import akshatImg from "../assets/secretaries/akshat.jpeg";
 import anantImg from "../assets/secretaries/anant.jpeg";
@@ -91,16 +90,6 @@ It gets worse."`,
 
 const SECRETARIES = [
  
-  {
-    id: "sec-0",
-    name: "Aarush Waghmare",
-    role: "Secretary",
-    funnyDescription: `"En croissant"`,
-    image: aarushWaghImg,
-    email: "aarushw24@iitk.ac.in",
-    instagram: "https://www.instagram.com/aarush_waghmare/",
-    linkedin: "https://www.linkedin.com/in/aarush-waghmare/"
-  },
   {
     id: "sec-1",
     name: "Aditya Dum",
