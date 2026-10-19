@@ -391,7 +391,7 @@ const Landing = () => {
               {[
                 {
                   icon: "groups",
-                  value: "800+",
+                  value: "2000+",
                   label: "Community",
                   desc: "Students, contenders, and enthusiasts."
                 },
